@@ -20,7 +20,7 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Use(SessionLoad)
 	//===========================
 
-	mux.Get("/", handlers.Repo.Home)
+	mux.Get("/", handlers.Repo.Index)
 	mux.Get("/about", handlers.Repo.About)
 
 	// creat fileserver for static content

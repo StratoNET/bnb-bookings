@@ -29,19 +29,18 @@ func NewHandlers(r *Repository) {
 }
 
 // Home is the handler for the home page
-func (m *Repository) Home(w http.ResponseWriter, r *http.Request) {
+func (m *Repository) Index(w http.ResponseWriter, r *http.Request) {
 	remoteIP := r.RemoteAddr
 	// put remote IP address into session data via App Repository instance
 	m.App.Session.Put(r.Context(), "remote_IP", remoteIP)
 
-	render.RenderTemplate(w, "home.page.tmpl", &models.TemplateData{})
+	render.RenderTemplate(w, "index.page.tmpl", &models.TemplateData{})
 }
 
 // About is the handler for the about page
 func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
 	// perform some logic to produce passable data
 	stringMap := make(map[string]string)
-	stringMap["test"] = "Data test string"
 
 	// get remote IP, via key, stored in session (during Home handler request),
 	// this could be "" if this handler request is made first
