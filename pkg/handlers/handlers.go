@@ -28,7 +28,7 @@ func NewHandlers(r *Repository) {
 	Repo = r
 }
 
-// Home is the handler for the home page
+// Index is the handler for the home page
 func (m *Repository) Index(w http.ResponseWriter, r *http.Request) {
 	remoteIP := r.RemoteAddr
 	// put remote IP address into session data via App Repository instance
@@ -53,4 +53,9 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
 	render.RenderTemplate(w, "about.page.tmpl", &models.TemplateData{
 		StringMap: stringMap,
 	})
+}
+
+// Reservation is the handler for the reservation page
+func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, "reservation.page.tmpl", &models.TemplateData{})
 }
