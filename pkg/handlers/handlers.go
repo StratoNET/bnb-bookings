@@ -55,7 +55,17 @@ func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-// Reservation is the handler for the reservation page
-func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, "reservation.page.tmpl", &models.TemplateData{})
+// GQ is the handler for the General's Quarters (gq) page
+func (m *Repository) GQ(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, "gq.page.tmpl", &models.TemplateData{})
+}
+
+// MS is the handler for the Major's Suite (ms) page
+func (m *Repository) MS(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, "ms.page.tmpl", &models.TemplateData{})
+}
+
+// Availability is the handler for the search-availability page
+func (m *Repository) Availability(w http.ResponseWriter, r *http.Request) {
+	render.RenderTemplate(w, "search-availability.page.tmpl", &models.TemplateData{})
 }

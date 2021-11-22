@@ -11,32 +11,13 @@
       integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.1.4/dist/css/datepicker-bs4.min.css" rel="stylesheet">
     <link href="https://unpkg.com/notie/dist/notie.min.css" rel="stylesheet">
+    <link href="/static/css/base.css" rel="stylesheet">
 
     {{block "css" .}}
 
     {{end}}
 
     <title>Eden House | Bed &amp; Breakfast</title>
-
-    <style>
-      .bd-placeholder-img {
-        font-size: 1.125rem;
-        text-anchor: middle;
-        -webkit-user-select: none;
-        -moz-user-select: none;
-        user-select: none;
-      }
-    
-      @media (min-width: 768px) {
-        .bd-placeholder-img-lg {
-          font-size: 3.5rem;
-        }
-      }
-
-      main > .container {
-        padding: 60px 15px 0;
-      }
-    </style>
 
   </head>
 
@@ -65,12 +46,12 @@
                   Rooms
                 </a>
                 <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
-                  <li><a class="dropdown-item" href="#">General&apos;s Quarters</a></li>
-                  <li><a class="dropdown-item" href="#">Major&apos;s Suite</a></li>
+                  <li><a class="dropdown-item" href="/gq">General&apos;s Quarters</a></li>
+                  <li><a class="dropdown-item" href="/ms">Major&apos;s Suite</a></li>
                 </ul>
               </li>
               <li class="nav-item">
-                <a class="nav-link text-info" href="/reservation">Book Now</a>
+                <a class="nav-link text-info" href="/search-availability">Book Now</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" href="#">Contact</a>
@@ -94,8 +75,8 @@
 
     </main>
 
-    <footer class="footer mt-auto py-3 bg-secondary">
-      <div class="container">
+    <footer class="fixed-bottom mt-auto py-3 bg-dark">
+      <div class="container-fluid">
         <span class="text-light">Remote IP :</span>
       </div>
     </footer>
@@ -107,6 +88,8 @@
     <script src="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.1.4/dist/js/datepicker-full.min.js"></script>
     <!-- notie -->
     <script src="https://unpkg.com/notie"></script>
+    <!-- sweetalert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     {{block "js" .}}
 
