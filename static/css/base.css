@@ -23,3 +23,8 @@ main > .container {
 .datepicker {
   z-index: 10000;
 }
+
+.carousel-caption-background {
+  background: rgba(0, 0, 24, 0.5);
+  border-radius: 0.75rem;
+}

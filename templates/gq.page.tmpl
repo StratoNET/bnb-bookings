@@ -25,9 +25,38 @@
 
     <div class="row">
       <div class="col text-center">
-        <a id="check-availability-button" href="/make-reservation-gq" class="btn btn-success">Check Availability</a>
+        <a id="check-availability-button" href="#!" class="btn btn-success">Check Availability</a>
       </div>
     </div>
 
   </div>
+{{end}}
+
+{{define "js"}}
+  <script>
+    document.getElementById("check-availability-button").addEventListener("click", function () {
+      let modal_html = `
+      <div class="container">
+        <form id="search-availability-form" name="search-availability-form" action="" method="post" class="needs-validation" novalidate>
+          <div class="row" id="reservation-dates-modal">
+            <div class="col">
+              <input required class="form-control" type="text" name="start" id="start" placeholder=" Arrival date" disabled>
+            </div>
+            <div class="col">
+              <input required class="form-control" type="text" name="end" id="end" placeholder=" Departure date" disabled>
+            </div>
+          </div>
+        </form>
+      </div>`;
+      // notify("Success !", "success")
+      // notifyModal("Welcome", "<em>Eden House BnB</em>", "success", "Book Now")
+      attention.custom({
+        title: 'Choose your dates',
+        msg: modal_html,
+      });
+      // attention.toast({
+      //   msg: 'Hello World',
+      // });
+    })
+  </script>
 {{end}}
