@@ -3,7 +3,7 @@
 {{define "content"}}
   <div class="container">
     <div class="row">
-      <div class="col">
+      <div class="col mt-5">
         <img src="/static/images/majors-suite.png" class="img-fluid img-thumbnail mx-auto d-block room-image" 
         alt="room image">
       </div>
@@ -11,7 +11,7 @@
 
     <div class="row">
       <div class="col">
-        <h1 class="text-center mt-4">Major&apos;s Suite</h1>
+        <h1 class="text-center mt-5">Major&apos;s Suite</h1>
           <p>
             Your home away from home, set on the majestic waters of Lake Costa, this will be a vacation to remember.
             Your home away from home, set on the majestic waters of Lake Costa, this will be a vacation to remember.
@@ -25,7 +25,7 @@
 
     <div class="row">
       <div class="col text-center">
-        <a id="check-availability-button" href="#!" class="btn btn-success">Check Availability</a>
+        <a id="check-availability-btn" href="#!" class="btn btn-success">Check Availability</a>
       </div>
     </div>
 
@@ -34,25 +34,60 @@
 
 {{define "js"}}
   <script>
-    document.getElementById("check-availability-button").addEventListener("click", function () {
+    document.getElementById("check-availability-btn").addEventListener("click", function () {
       let modal_html = `
       <div class="container">
-        <form id="search-availability-form" name="search-availability-form" action="" method="post" class="needs-validation" novalidate>
+        <form id="availabilityModalForm" name="availabilityModalForm" action="" method="post" class="needs-validation" novalidate>
           <div class="row" id="reservation-dates-modal">
             <div class="col">
-              <input required class="form-control" type="text" name="start" id="start" placeholder=" Arrival date" disabled>
+              <input required class="form-control" type="text" name="start_date" id="start_date" placeholder=" Arrival date" disabled>
             </div>
             <div class="col">
-              <input required class="form-control" type="text" name="end" id="end" placeholder=" Departure date" disabled>
+              <input required class="form-control" type="text" name="end_date" id="end_date" placeholder=" Departure date" disabled>
             </div>
           </div>
         </form>
       </div>`;
       // notify("Success !", "success")
       // notifyModal("Welcome", "<em>Eden House BnB</em>", "success", "Book Now")
-      attention.custom({
+      attention.customModal({
         title: 'Choose your dates',
         msg: modal_html,
+        willOpen: () => {
+          const rdm = document.getElementById("reservation-dates-modal");
+          const rp = new DateRangePicker(rdm, {
+            format: 'dd/mm/yyyy',
+            showOnFocus: true,
+          })
+        },
+        didOpen: () => {
+          document.getElementById("start_date").removeAttribute("disabled");
+          document.getElementById("end_date").removeAttribute("disabled");
+        },
+        preConfirm: () => {
+          return [
+            document.getElementById('start_date').value,
+            document.getElementById('end_date').value
+          ]
+        },
+        callback: function (result) {
+          console.log("It was called !");
+
+          let modalForm = document.getElementById("availabilityModalForm");
+          let modalFormData = new FormData(modalForm);
+          modalFormData.append("csrf_token", "{{.CSRFToken}}");
+
+          fetch('/search-availability-modal', {
+            method: "post",
+            body: modalFormData,
+          })
+            .then(response => response.json())
+            .then(data => {
+              console.log(data);
+              console.log(data.ok);
+              console.log(data.message);
+            });
+        }
       });
       // attention.toast({
       //   msg: 'Hello World',

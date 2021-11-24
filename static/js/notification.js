@@ -1,4 +1,4 @@
-let attention = Prompt();
+let attention = Inform();
 
 (function () {
   'use strict';
@@ -36,7 +36,7 @@ function notifyModal(title, html, icon, confirmButtonText) {
   })
 }
 
-function Prompt() {
+function Inform() {
   let toast = function (params) {
     const {
       msg = '',
@@ -94,39 +94,47 @@ function Prompt() {
 
   }
 
-  async function custom(params) {
+  async function customModal(params) {
     const {
       title = "",
       msg = "",
     } = params;
 
-    const { value: formValues } = await Swal.fire({
+    const {value: result} = await Swal.fire({
       title: title,
       html: msg,
       backdrop: false,
       focusConfirm: false,
       showCancelButton: true,
       willOpen: () => {
-        const rdm = document.getElementById("reservation-dates-modal");
-        const rp = new DateRangePicker(rdm, {
-          format: 'dd/mm/yyyy',
-          showOnFocus: true,
-        })
+        if (params.willOpen !== undefined) {
+          params.willOpen();
+        }
       },
       didOpen: () => {
-        document.getElementById("start").removeAttribute("disabled");
-        document.getElementById("end").removeAttribute("disabled");
+        if (params.didOpen !== undefined) {
+          params.didOpen();
+        }
       },
       preConfirm: () => {
-        return [
-          document.getElementById('start').value,
-          document.getElementById('end').value
-        ]
+        if (params.preConfirm !== undefined) {
+          params.preConfirm();
+        }
       }
     })
 
-    if (formValues) {
-      Swal.fire(JSON.stringify(formValues))
+    if (result) {
+      if (result.dismiss !== Swal.DismissReason.cancel) {
+        if (result.value !== "") {
+          if (params.callback !== undefined) {
+            params.callback(result);
+          }
+        } else {
+          params.callback(false);
+        }
+      } else {
+        params.callback(false);
+      }
     }
   }
 
@@ -134,6 +142,6 @@ function Prompt() {
     toast: toast,
     success: success,
     error: error,
-    custom: custom,
+    customModal: customModal
   }
 }

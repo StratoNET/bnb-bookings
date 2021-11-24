@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/StratoNET/bnb-bookings/pkg/config"
-	"github.com/StratoNET/bnb-bookings/pkg/handlers"
-	"github.com/StratoNET/bnb-bookings/pkg/render"
+	"github.com/StratoNET/bnb-bookings/internal/config"
+	"github.com/StratoNET/bnb-bookings/internal/handlers"
+	"github.com/StratoNET/bnb-bookings/internal/render"
 	"github.com/alexedwards/scs/v2"
 )
 
