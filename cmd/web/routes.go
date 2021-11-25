@@ -30,6 +30,8 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Post("/search-availability-modal", handlers.Repo.PostAvailabilityModal)
 
 	mux.Get("/make-reservation", handlers.Repo.Reservation)
+	mux.Post("/make-reservation", handlers.Repo.PostReservation)
+
 	mux.Get("/contact", handlers.Repo.Contact)
 
 	// creat fileserver for static content

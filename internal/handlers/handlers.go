@@ -9,6 +9,7 @@ import (
 	"github.com/StratoNET/bnb-bookings/internal/config"
 	"github.com/StratoNET/bnb-bookings/internal/models"
 	"github.com/StratoNET/bnb-bookings/internal/render"
+	forms "github.com/StratoNET/bnb-bookings/internal/validation"
 )
 
 // Repo repository used by handlers
@@ -82,9 +83,54 @@ func (m *Repository) PostAvailabilityModal(w http.ResponseWriter, r *http.Reques
 	w.Write(out)
 }
 
-// Reservation is the handler for the make-reservation page
+// Reservation renders the make-reservation page & displays associated form
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{})
+	var emptyReservation models.Reservation
+	data := make(map[string]interface{})
+	data["reservation"] = emptyReservation
+
+	render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{
+		// provide access to template data's (initially empty) Form object first time this page is rendered
+		Form: forms.NewForm(nil),
+		Data: data,
+	})
+}
+
+// PostReservation is the handler for posting the make-reservation form
+func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
+	// initially ensure form data is parsed correctly
+	err := r.ParseForm()
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	// populate an instance of reservation object with data user has entered, even if 'bad' data
+	reservation := models.Reservation{
+		FirstName: r.Form.Get("first_name"),
+		LastName:  r.Form.Get("last_name"),
+		Email:     r.Form.Get("email"),
+		Phone:     r.Form.Get("phone"),
+	}
+
+	form := forms.NewForm(r.PostForm)
+
+	// perform all necessary validations
+
+	// form.HasField("first_name", r)
+	form.RequiredFields("first_name", "last_name", "email")
+	form.MinLength("first_name", 2, r)
+	form.IsEmail("email")
+
+	if !form.ValidForm() {
+		data := make(map[string]interface{})
+		data["reservation"] = reservation
+
+		render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{
+			Form: form,
+			Data: data,
+		})
+		return
+	}
 }
 
 // Contact is the handler for the contact page
