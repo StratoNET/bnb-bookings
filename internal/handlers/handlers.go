@@ -131,6 +131,29 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+
+	//for a valid reservation form, put into session & redirect to summary page
+	m.App.Session.Put(r.Context(), "reservation", reservation)
+	http.Redirect(w, r, "/reservation-summary", http.StatusSeeOther)
+}
+
+// ReservationSummary is the handler for displaying reservation details
+func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
+	// get reservation from session which requires type assertion, this sets ok true (or false on failure)
+	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		log.Println("cannot get reservation from session")
+		return
+	}
+
+	// create data object and populate with reservation data
+	data := make(map[string]interface{})
+	data["reservation"] = reservation
+
+	// using predefined Data object from templatedata struct, pass in data
+	render.RenderTemplate(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
 }
 
 // Contact is the handler for the contact page

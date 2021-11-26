@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/StratoNET/bnb-bookings/internal/config"
 	"github.com/StratoNET/bnb-bookings/internal/handlers"
+	"github.com/StratoNET/bnb-bookings/internal/models"
 	"github.com/StratoNET/bnb-bookings/internal/render"
 	"github.com/alexedwards/scs/v2"
 )
@@ -19,6 +21,9 @@ var session *scs.SessionManager
 
 // main is the main application function
 func main() {
+
+	// session needs to be informed for storage of complex types, in this case...
+	gob.Register(models.Reservation{})
 
 	// set development / production mode
 	app.ProductionMode = false
