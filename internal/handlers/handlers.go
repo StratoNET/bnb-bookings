@@ -139,12 +139,17 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 // ReservationSummary is the handler for displaying reservation details
 func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) {
-	// get reservation from session which requires type assertion, this sets ok true (or false on failure)
+	// get reservation from session which requires type assertion/casting, this sets ok true (or false on failure)
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
 		log.Println("cannot get reservation from session")
+		m.App.Session.Put(r.Context(), "error", "There are no reservation details available to display")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
+
+	//reaching this point implies 'reservation' was successfully retrieved, therefore can now be removed from session
+	m.App.Session.Remove(r.Context(), "reservation")
 
 	// create data object and populate with reservation data
 	data := make(map[string]interface{})

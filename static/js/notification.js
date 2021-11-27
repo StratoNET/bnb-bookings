@@ -36,6 +36,21 @@ function notifyModal(title, html, icon, confirmButtonText) {
   })
 }
 
+// setup message types using notie via notify()
+{{with .Flash}}
+notify("{{.}}", "success");
+{{end}}
+
+{{with .Warning}}
+notify("{{.}}", "warning");
+{{end}}
+
+{{with .Error}}
+notify("{{.}}", "error");
+{{end}}
+
+// ===========================================
+
 function Inform() {
   let toast = function (params) {
     const {

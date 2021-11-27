@@ -26,6 +26,9 @@ func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateDa
 	// add any default data, required on every page template, at this point
 	td.CSRFToken = nosurf.Token(r)
 	td.RemoteIP = r.RemoteAddr
+	td.Flash = app.Session.PopString(r.Context(), "flash")
+	td.Warning = app.Session.PopString(r.Context(), "warning")
+	td.Error = app.Session.PopString(r.Context(), "error")
 	return td
 }
 
