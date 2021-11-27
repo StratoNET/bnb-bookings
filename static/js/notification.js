@@ -36,21 +36,6 @@ function notifyModal(title, html, icon, confirmButtonText) {
   })
 }
 
-// setup message types using notie via notify()
-{{with .Flash}}
-notify("{{.}}", "success");
-{{end}}
-
-{{with .Warning}}
-notify("{{.}}", "warning");
-{{end}}
-
-{{with .Error}}
-notify("{{.}}", "error");
-{{end}}
-
-// ===========================================
-
 function Inform() {
   let toast = function (params) {
     const {
@@ -93,6 +78,22 @@ function Inform() {
 
   }
 
+  let warning = function (params) {
+    const {
+      title = "",
+      msg = "",
+      footer = "",
+    } = params;
+
+    Swal.fire({
+      icon: 'warning',
+      title: title,
+      text: msg,
+      footer: footer,
+    })
+
+  }
+
   let error = function (params) {
     const {
       title = "",
@@ -102,6 +103,38 @@ function Inform() {
 
     Swal.fire({
       icon: 'error',
+      title: title,
+      text: msg,
+      footer: footer,
+    })
+
+  }
+
+  let info = function (params) {
+    const {
+      title = "",
+      msg = "",
+      footer = "",
+    } = params;
+
+    Swal.fire({
+      icon: 'info',
+      title: title,
+      text: msg,
+      footer: footer,
+    })
+
+  }
+
+  let question = function (params) {
+    const {
+      title = "",
+      msg = "",
+      footer = "",
+    } = params;
+
+    Swal.fire({
+      icon: 'question',
       title: title,
       text: msg,
       footer: footer,
@@ -156,7 +189,10 @@ function Inform() {
   return {
     toast: toast,
     success: success,
+    warning: warning,
     error: error,
+    info: info,
+    question: question,
     customModal: customModal
   }
 }

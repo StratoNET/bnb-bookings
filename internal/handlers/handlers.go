@@ -142,7 +142,6 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	// get reservation from session which requires type assertion/casting, this sets ok true (or false on failure)
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
-		log.Println("cannot get reservation from session")
 		m.App.Session.Put(r.Context(), "error", "There are no reservation details available to display")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return

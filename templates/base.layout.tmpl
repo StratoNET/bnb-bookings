@@ -94,6 +94,20 @@
     <!-- common javascript for notie / sweetalert2 -->
     <script src="/static/js/notification.js"></script>
 
+    <!-- setup message types using notie via notify() -->
+    {{with .Flash}}
+      <script>notify("{{.}}", "success");</script>
+    {{end}}
+
+    {{with .Warning}}
+      <script>notify("{{.}}", "warning");</script>
+    {{end}}
+
+    {{with .Error}}
+      <script>notify("{{.}}", "error");</script>
+    {{end}}
+    <!-- ============================================ -->
+
     {{block "js" .}}
 
     {{end}}
