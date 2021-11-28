@@ -16,6 +16,30 @@ main > .container {
   padding: 60px 15px 0;
 }
 
+/* === begin notie background colours === */
+
+.notie-background-success {
+  background-color: #198754; /* #57bf57 */
+}
+
+.notie-background-warning {
+  background-color: #ffc107; /* #d6a14d */
+}
+
+.notie-background-error {
+  background-color: #dc3545; /* #e1715b */
+}
+
+.notie-background-info {
+  background-color: #0dcaf0; /* #4d82d6 */
+}
+
+.notie-background-neutral {
+  background-color: #a0a0a0; /* #a0a0a0 */
+}
+
+/* ==== end notie background colours ==== */
+
 .room-image {
   max-width: 50%;
 }

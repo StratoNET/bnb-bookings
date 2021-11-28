@@ -18,12 +18,13 @@ let attention = Inform();
   }, false);
 })();
 
-function notify(msg, msgType) {
+function notify(msg, msgType, duration) {
   // set fixed navbar z-index = 0 allowing full noti(e)fication display
   document.getElementById("navbar").style.zIndex = 0
   notie.alert({
     type: msgType,
     text: msg,
+    time: duration,
   })
 }
 

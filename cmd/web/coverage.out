@@ -1,0 +1,10 @@
+mode: set
+github.com/StratoNET/bnb-bookings/cmd/web/main.go:23.13,26.16 2 0
+github.com/StratoNET/bnb-bookings/cmd/web/main.go:30.2,38.16 4 0
+github.com/StratoNET/bnb-bookings/cmd/web/main.go:26.16,28.3 1 0
+github.com/StratoNET/bnb-bookings/cmd/web/main.go:42.23,60.16 10 1
+github.com/StratoNET/bnb-bookings/cmd/web/main.go:65.2,73.12 6 1
+github.com/StratoNET/bnb-bookings/cmd/web/main.go:60.16,63.3 2 0
+github.com/StratoNET/bnb-bookings/cmd/web/middleware.go:10.45,21.2 3 1
+github.com/StratoNET/bnb-bookings/cmd/web/middleware.go:24.50,26.2 1 1
+github.com/StratoNET/bnb-bookings/cmd/web/routes.go:12.49,44.2 18 1

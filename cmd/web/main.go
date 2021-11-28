@@ -22,6 +22,25 @@ var session *scs.SessionManager
 // main is the main application function
 func main() {
 
+	err := run_main()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Printf("Starting application on port %s\n", portNumber)
+
+	srv := &http.Server{
+		Addr:    portNumber,
+		Handler: routes(&app),
+	}
+
+	err = srv.ListenAndServe()
+	log.Fatal(err)
+}
+
+// initial main() code function for testing
+func run_main() error {
+
 	// session needs to be informed for storage of complex types, in this case...
 	gob.Register(models.Reservation{})
 
@@ -40,6 +59,7 @@ func main() {
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
 		log.Fatal("cannot create application template cache")
+		return err
 	}
 
 	app.TemplateCache = tc
@@ -50,13 +70,5 @@ func main() {
 
 	render.NewTemplates(&app)
 
-	fmt.Printf("Starting application on port %s\n", portNumber)
-
-	srv := &http.Server{
-		Addr:    portNumber,
-		Handler: routes(&app),
-	}
-
-	err = srv.ListenAndServe()
-	log.Fatal(err)
+	return nil
 }
