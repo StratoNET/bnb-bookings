@@ -1,0 +1,22 @@
+mode: set
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:24.53,28.2 1 1
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:31.33,33.2 1 1
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:36.68,38.2 1 1
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:41.68,43.2 1 1
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:46.65,48.2 1 1
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:51.65,53.2 1 1
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:56.75,58.2 1 1
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:61.79,65.2 3 0
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:73.84,79.16 3 0
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:82.2,83.14 2 0
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:79.16,81.3 1 0
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:87.74,97.2 4 1
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:100.78,103.16 2 0
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:108.2,124.23 6 0
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:136.2,137.66 2 0
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:103.16,106.3 2 0
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:124.23,133.3 4 0
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:141.81,144.9 2 1
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:151.2,160.4 4 0
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:144.9,148.3 3 1
+github.com/StratoNET/bnb-bookings/internal/handlers/handlers.go:164.70,166.2 1 1
