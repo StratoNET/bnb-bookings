@@ -1,0 +1,16 @@
+mode: set
+github.com/StratoNET/bnb-bookings/internal/validation/errors.go:6.49,8.2 1 1
+github.com/StratoNET/bnb-bookings/internal/validation/errors.go:11.48,13.22 2 1
+github.com/StratoNET/bnb-bookings/internal/validation/errors.go:16.2,16.18 1 1
+github.com/StratoNET/bnb-bookings/internal/validation/errors.go:13.22,15.3 1 1
+github.com/StratoNET/bnb-bookings/internal/validation/forms.go:18.37,23.2 1 1
+github.com/StratoNET/bnb-bookings/internal/validation/forms.go:28.33,30.2 1 1
+github.com/StratoNET/bnb-bookings/internal/validation/forms.go:33.49,34.31 1 1
+github.com/StratoNET/bnb-bookings/internal/validation/forms.go:34.31,36.37 2 1
+github.com/StratoNET/bnb-bookings/internal/validation/forms.go:36.37,38.4 1 1
+github.com/StratoNET/bnb-bookings/internal/validation/forms.go:43.44,50.2 2 1
+github.com/StratoNET/bnb-bookings/internal/validation/forms.go:53.57,55.23 2 1
+github.com/StratoNET/bnb-bookings/internal/validation/forms.go:59.2,59.13 1 1
+github.com/StratoNET/bnb-bookings/internal/validation/forms.go:55.23,58.3 2 1
+github.com/StratoNET/bnb-bookings/internal/validation/forms.go:63.38,64.40 1 1
+github.com/StratoNET/bnb-bookings/internal/validation/forms.go:64.40,66.3 1 1
