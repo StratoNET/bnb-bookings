@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"time"
 
@@ -29,6 +30,12 @@ func getRoutes() http.Handler {
 
 	// set development / production mode
 	app.ProductionMode = false
+
+	// create InfoLog & ErrorLog, making them available throughout application via config
+	infoLog := log.New(os.Stdout, "\033[36;1mINFO\033[0;0m\t", log.Ldate|log.Ltime)
+	app.InfoLog = infoLog
+	errorLog := log.New(os.Stdout, "\033[31;1mERROR\033[0;0m\t", log.Ldate|log.Ltime|log.Lshortfile)
+	app.ErrorLog = errorLog
 
 	// invoke session management via 'scs' package
 	session = scs.New()

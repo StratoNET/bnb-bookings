@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/StratoNET/bnb-bookings/internal/config"
 	"github.com/StratoNET/bnb-bookings/internal/handlers"
+	"github.com/StratoNET/bnb-bookings/internal/helpers"
 	"github.com/StratoNET/bnb-bookings/internal/models"
 	"github.com/StratoNET/bnb-bookings/internal/render"
 	"github.com/alexedwards/scs/v2"
@@ -18,6 +20,8 @@ const portNumber = ":8080"
 
 var app config.AppConfig
 var session *scs.SessionManager
+var infoLog *log.Logger
+var errorLog *log.Logger
 
 // main is the main application function
 func main() {
@@ -47,6 +51,12 @@ func run_main() error {
 	// set development / production mode
 	app.ProductionMode = false
 
+	// create InfoLog & ErrorLog, making them available throughout application via config
+	infoLog = log.New(os.Stdout, "\033[36;1mINFO\033[0;0m\t", log.Ldate|log.Ltime)
+	app.InfoLog = infoLog
+	errorLog = log.New(os.Stdout, "\033[31;1mERROR\033[0;0m\t", log.Ldate|log.Ltime|log.Lshortfile)
+	app.ErrorLog = errorLog
+
 	// invoke session management via 'scs' package
 	session = scs.New()
 	session.Lifetime = 24 * time.Hour
@@ -69,6 +79,8 @@ func run_main() error {
 	handlers.NewHandlers(repo)
 
 	render.NewTemplates(&app)
+
+	helpers.NewHelpers(&app)
 
 	return nil
 }

@@ -3,10 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/StratoNET/bnb-bookings/internal/config"
+	"github.com/StratoNET/bnb-bookings/internal/helpers"
 	"github.com/StratoNET/bnb-bookings/internal/models"
 	"github.com/StratoNET/bnb-bookings/internal/render"
 	forms "github.com/StratoNET/bnb-bookings/internal/validation"
@@ -77,7 +77,8 @@ func (m *Repository) PostAvailabilityModal(w http.ResponseWriter, r *http.Reques
 	}
 	out, err := json.MarshalIndent(rsp, "", "    ")
 	if err != nil {
-		log.Println(err)
+		helpers.ServerError(w, err)
+		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(out)
@@ -101,7 +102,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	// initially ensure form data is parsed correctly
 	err := r.ParseForm()
 	if err != nil {
-		log.Println(err)
+		helpers.ServerError(w, err)
 		return
 	}
 	// populate an instance of reservation object with data user has entered, even if 'bad' data
@@ -142,6 +143,7 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	// get reservation from session which requires type assertion/casting, this sets ok true (or false on failure)
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
+		m.App.ErrorLog.Println("Cannot get reservation from session")
 		m.App.Session.Put(r.Context(), "error", "There are no reservation details available to display")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
