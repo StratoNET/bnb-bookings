@@ -76,7 +76,7 @@ func run_main() (*database.DB, error) {
 
 	// connect to database
 	log.Println("Connecting to database...")
-	db, err := database.ConnectSQL("root:mr.costa@tcp(localhost:3306)/bnb-bookings")
+	db, err := database.ConnectSQL("root:@tcp(localhost:3306)/bnb-bookings")
 	if err != nil {
 		log.Fatal("Cannot connect to database ! ... terminating...")
 	}
