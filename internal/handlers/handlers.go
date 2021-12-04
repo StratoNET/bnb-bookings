@@ -39,27 +39,27 @@ func NewHandlers(r *Repository) {
 
 // Index is the handler for the home page
 func (m *Repository) Index(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "index.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "index.page.tmpl", &models.TemplateData{})
 }
 
 // About is the handler for the about page
 func (m *Repository) About(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "about.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "about.page.tmpl", &models.TemplateData{})
 }
 
 // GQ is the handler for the General's Quarters (gq) page
 func (m *Repository) GQ(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "gq.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "gq.page.tmpl", &models.TemplateData{})
 }
 
 // MS is the handler for the Major's Suite (ms) page
 func (m *Repository) MS(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "ms.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "ms.page.tmpl", &models.TemplateData{})
 }
 
 // Availability is the handler for the search-availability page
 func (m *Repository) Availability(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "search-availability.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "search-availability.page.tmpl", &models.TemplateData{})
 }
 
 // PostAvailability handles request for search-availability page data
@@ -95,7 +95,7 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 	data := make(map[string]interface{})
 	data["reservation"] = emptyReservation
 
-	render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{
+	render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
 		// provide access to template data's (initially empty) Form object first time this page is rendered
 		Form: forms.NewForm(nil),
 		Data: data,
@@ -131,7 +131,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
 
-		render.RenderTemplate(w, r, "make-reservation.page.tmpl", &models.TemplateData{
+		render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
 			Form: form,
 			Data: data,
 		})
@@ -162,12 +162,12 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	data["reservation"] = reservation
 
 	// using predefined Data object from templatedata struct, pass in data
-	render.RenderTemplate(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
+	render.Template(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
 		Data: data,
 	})
 }
 
 // Contact is the handler for the contact page
 func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
-	render.RenderTemplate(w, r, "contact.page.tmpl", &models.TemplateData{})
+	render.Template(w, r, "contact.page.tmpl", &models.TemplateData{})
 }

@@ -50,7 +50,11 @@ func main() {
 func run_main() (*database.DB, error) {
 
 	// session needs to be informed for storage of complex types, in this case...
+	gob.Register(models.Administrator{})
 	gob.Register(models.Reservation{})
+	gob.Register(models.Room{})
+	gob.Register(models.RoomRestriction{})
+	gob.Register(models.RestrictionCategory{})
 
 	// set development / production mode
 	app.ProductionMode = false
@@ -90,7 +94,7 @@ func run_main() (*database.DB, error) {
 	repo := handlers.NewRepository(&app, db)
 	handlers.NewHandlers(repo)
 
-	render.NewTemplates(&app)
+	render.NewRenderer(&app)
 
 	helpers.NewHelpers(&app)
 
