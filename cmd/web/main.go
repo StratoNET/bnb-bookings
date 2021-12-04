@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/StratoNET/bnb-bookings/internal/config"
+	"github.com/StratoNET/bnb-bookings/internal/database"
 	"github.com/StratoNET/bnb-bookings/internal/handlers"
 	"github.com/StratoNET/bnb-bookings/internal/helpers"
 	"github.com/StratoNET/bnb-bookings/internal/models"
@@ -26,10 +27,13 @@ var errorLog *log.Logger
 // main is the main application function
 func main() {
 
-	err := run_main()
+	db, err := run_main()
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// only allow the database connection to close after main() executes fully
+	defer db.SQL.Close()
 
 	fmt.Printf("Starting application on port %s\n", portNumber)
 
@@ -43,7 +47,7 @@ func main() {
 }
 
 // initial main() code function for testing
-func run_main() error {
+func run_main() (*database.DB, error) {
 
 	// session needs to be informed for storage of complex types, in this case...
 	gob.Register(models.Reservation{})
@@ -66,21 +70,29 @@ func run_main() error {
 	// apply session parameters throughout application
 	app.Session = session
 
+	// connect to database
+	log.Println("Connecting to database...")
+	db, err := database.ConnectSQL("root:mr.costa@tcp(localhost:3306)/bnb-bookings")
+	if err != nil {
+		log.Fatal("Cannot connect to database ! ... terminating...")
+	}
+	log.Println("Connected to database OK")
+
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
 		log.Fatal("cannot create application template cache")
-		return err
+		return nil, err
 	}
 
 	app.TemplateCache = tc
 	app.UseCache = false
 
-	repo := handlers.NewRepository(&app)
+	repo := handlers.NewRepository(&app, db)
 	handlers.NewHandlers(repo)
 
 	render.NewTemplates(&app)
 
 	helpers.NewHelpers(&app)
 
-	return nil
+	return db, nil
 }

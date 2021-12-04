@@ -6,24 +6,29 @@ import (
 	"net/http"
 
 	"github.com/StratoNET/bnb-bookings/internal/config"
+	"github.com/StratoNET/bnb-bookings/internal/database"
 	"github.com/StratoNET/bnb-bookings/internal/helpers"
 	"github.com/StratoNET/bnb-bookings/internal/models"
 	"github.com/StratoNET/bnb-bookings/internal/render"
+	"github.com/StratoNET/bnb-bookings/internal/repository"
+	"github.com/StratoNET/bnb-bookings/internal/repository/dbrepository"
 	forms "github.com/StratoNET/bnb-bookings/internal/validation"
 )
 
 // Repo repository used by handlers
 var Repo *Repository
 
-// Repository
+// Repository, which incorporates a database repository
 type Repository struct {
 	App *config.AppConfig
+	DB  repository.DatabaseRepository
 }
 
-// NewRepository creates a new repository
-func NewRepository(a *config.AppConfig) *Repository {
+// NewRepository creates a new repository, which incorporates a database repository
+func NewRepository(a *config.AppConfig, db *database.DB) *Repository {
 	return &Repository{
 		App: a,
+		DB:  dbrepository.NewMariaDBRepository(db.SQL, a),
 	}
 }
 
