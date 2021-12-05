@@ -10,6 +10,7 @@
         {{$rsvn := index .Data "reservation"}}
         <form method="post" action="/make-reservation" class="_needs-validation" novalidate>
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+          <input type="hidden" name="room_id" value="1">
 
           <div class="form-group mt-5">
             <label for="first_name">First Name:</label>
@@ -44,6 +45,24 @@
             <input class="form-control my-2 {{with .Form.Errors.GetErrMsg "phone"}} is-invalid {{end}}" id="phone" autocomplete="off" type='text' name='phone' value="{{$rsvn.Phone}}" required>
           </div>
   
+          <div class="form-group">
+            <label for="start_date">Start Date:</label>
+            {{with .Form.Errors.GetErrMsg "start_date"}}
+            <label class="text-danger">{{.}}</label>
+            {{end}}
+            <input class="form-control my-2 {{with .Form.Errors.GetErrMsg " start_date"}} is-invalid {{end}}" id="start_date"
+              autocomplete="off" type='text' name='start_date' value="{{$rsvn.StartDate}}" required>
+          </div>
+
+          <div class="form-group">
+            <label for="end_date">End Date:</label>
+            {{with .Form.Errors.GetErrMsg "end_date"}}
+            <label class="text-danger">{{.}}</label>
+            {{end}}
+            <input class="form-control my-2 {{with .Form.Errors.GetErrMsg " end_date"}} is-invalid {{end}}" id="end_date"
+              autocomplete="off" type='text' name='end_date' value="{{$rsvn.EndDate}}" required>
+          </div>
+
           <hr>
 
           <input type="submit" class="btn btn-primary" value="Make Reservation">

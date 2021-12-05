@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/StratoNET/bnb-bookings/internal/config"
 	"github.com/StratoNET/bnb-bookings/internal/database"
@@ -111,11 +113,35 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// populate an instance of reservation object with data user has entered, even if 'bad' data
+	sd := r.Form.Get("start_date")
+	ed := r.Form.Get("end_date")
+	// parse dates as appropriate, format required is yyyy-mm-dd -- (Go format reminder is 01/02 03:04:05PM '06 -0700)
+	layout := "2006-01-02"
+	startDate, err := time.Parse(layout, sd)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	endDate, err := time.Parse(layout, ed)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	roomID, err := strconv.Atoi(r.Form.Get("room_id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
 	reservation := models.Reservation{
+		RoomID:    roomID,
 		FirstName: r.Form.Get("first_name"),
 		LastName:  r.Form.Get("last_name"),
 		Email:     r.Form.Get("email"),
 		Phone:     r.Form.Get("phone"),
+		StartDate: startDate,
+		EndDate:   endDate,
 	}
 
 	form := forms.NewForm(r.PostForm)
@@ -135,6 +161,28 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 			Form: form,
 			Data: data,
 		})
+		return
+	}
+
+	// after all validation procedures are complete, insert reservation record into database
+	lastReservationID, err := m.DB.InsertReservation(reservation)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	// populate and instance of the RoomRestriction object, get ReservationID from LastInsertId() after executing InsertReservation()
+	room_restriction := models.RoomRestriction{
+		RoomID:        roomID,
+		ReservationID: lastReservationID,
+		RestrictionID: 1,
+		StartDate:     startDate,
+		EndDate:       endDate,
+	}
+
+	err = m.DB.InsertRoomRestriction(room_restriction)
+	if err != nil {
+		helpers.ServerError(w, err)
 		return
 	}
 
