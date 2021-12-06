@@ -68,6 +68,33 @@ func (m *Repository) Availability(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 	start := r.Form.Get("start_date")
 	end := r.Form.Get("end_date")
+
+	// parse dates as appropriate, format required is dd/mm/yyyy -- (Go format reminder is 01/02 03:04:05PM '06 -0700)
+	layout := "02/01/2006"
+	startDate, err := time.Parse(layout, start)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	endDate, err := time.Parse(layout, end)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	rooms, err := m.DB.SearchAvailabilityForAllRooms(startDate, endDate)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	if len(rooms) == 0 {
+		// no availability
+		m.App.Session.Put(r.Context(), "error", "Sorry, no availability for the full requested period.")
+		http.Redirect(w, r, "/search-availability", http.StatusSeeOther)
+		return
+	}
+
 	w.Write([]byte(fmt.Sprintf("Start date is %s and end date is %s.", start, end)))
 }
 
@@ -115,8 +142,9 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	// populate an instance of reservation object with data user has entered, even if 'bad' data
 	sd := r.Form.Get("start_date")
 	ed := r.Form.Get("end_date")
-	// parse dates as appropriate, format required is yyyy-mm-dd -- (Go format reminder is 01/02 03:04:05PM '06 -0700)
-	layout := "2006-01-02"
+
+	// parse dates as appropriate, format required is dd/mm/yyyy -- (Go format reminder is 01/02 03:04:05PM '06 -0700)
+	layout := "02/01/2006"
 	startDate, err := time.Parse(layout, sd)
 	if err != nil {
 		helpers.ServerError(w, err)
