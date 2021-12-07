@@ -5,12 +5,24 @@
     <div class="row">
       <div class="col">
         <h1 class="mt-5">Make a Reservation</h1>
-        <p><strong>Please enter your reservation details...</strong></p>
 
         {{$rsvn := index .Data "reservation"}}
+
+        <div class="make-reservation">
+          <ul>
+            <li>Room: {{$rsvn.Room.RoomName}}</li>
+            <li>Arrival Date: {{index .StringMap "start_date"}}</li>
+            <li>Departure Date: {{index .StringMap "end_date"}}</li>
+          </ul>
+        </div>
+
+        <p><strong>Please complete your reservation details...</strong></p>
+
         <form method="post" action="/make-reservation" class="_needs-validation" novalidate>
           <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-          <input type="hidden" name="room_id" value="1">
+          <input type="hidden" name="start_date" value="{{index .StringMap "start_date"}}">
+          <input type="hidden" name="end_date" value="{{index .StringMap "end_date"}}">
+          <input type="hidden" name="room_id" value="{{$rsvn.RoomID}}">
 
           <div class="form-group mt-5">
             <label for="first_name">First Name:</label>
@@ -45,24 +57,6 @@
             <input class="form-control my-2 {{with .Form.Errors.GetErrMsg "phone"}} is-invalid {{end}}" id="phone" autocomplete="off" type='text' name='phone' value="{{$rsvn.Phone}}" required>
           </div>
   
-          <div class="form-group">
-            <label for="start_date">Start Date:</label>
-            {{with .Form.Errors.GetErrMsg "start_date"}}
-            <label class="text-danger">{{.}}</label>
-            {{end}}
-            <input class="form-control my-2 {{with .Form.Errors.GetErrMsg " start_date"}} is-invalid {{end}}" id="start_date"
-              autocomplete="off" type='text' name='start_date' value="{{$rsvn.StartDate}}" required>
-          </div>
-
-          <div class="form-group">
-            <label for="end_date">End Date:</label>
-            {{with .Form.Errors.GetErrMsg "end_date"}}
-            <label class="text-danger">{{.}}</label>
-            {{end}}
-            <input class="form-control my-2 {{with .Form.Errors.GetErrMsg " end_date"}} is-invalid {{end}}" id="end_date"
-              autocomplete="off" type='text' name='end_date' value="{{$rsvn.EndDate}}" required>
-          </div>
-
           <hr>
 
           <input type="submit" class="btn btn-primary" value="Make Reservation">

@@ -123,3 +123,28 @@ func (m *mariaDBRepository) SearchAvailabilityForAllRooms(start, end time.Time) 
 	return rooms_available, nil
 
 }
+
+// GetRoomByID gets room details, especially room name, by id
+func (m *mariaDBRepository) GetRoomByID(id int) (models.Room, error) {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var room models.Room
+
+	query := `SELECT * FROM rooms WHERE id = ?;`
+
+	row := m.DB.QueryRowContext(ctx, query, id)
+	err := row.Scan(
+		&room.ID,
+		&room.RoomName,
+		&room.CreatedAt,
+		&room.UpdatedAt,
+	)
+
+	if err != nil {
+		return room, err
+	}
+
+	return room, nil
+}

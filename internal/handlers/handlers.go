@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -15,6 +15,7 @@ import (
 	"github.com/StratoNET/bnb-bookings/internal/repository"
 	"github.com/StratoNET/bnb-bookings/internal/repository/dbrepository"
 	forms "github.com/StratoNET/bnb-bookings/internal/validation"
+	"github.com/go-chi/chi/v5"
 )
 
 // Repo repository used by handlers
@@ -90,12 +91,28 @@ func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 
 	if len(rooms) == 0 {
 		// no availability
-		m.App.Session.Put(r.Context(), "error", "Sorry, no availability for the full requested period.")
+		m.App.Session.Put(r.Context(), "error", "Sorry, no availability (at least for the entire requested period)")
 		http.Redirect(w, r, "/search-availability", http.StatusSeeOther)
 		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("Start date is %s and end date is %s.", start, end)))
+	// by this point there must be availability, utilise data object available throughout from templatedata
+	data := make(map[string]interface{})
+	data["rooms"] = rooms
+
+	// instantiate a reservation with only the information known so far from search availability (i.e. the dates, room is still unknown)
+	reservation := models.Reservation{
+		StartDate: startDate,
+		EndDate:   endDate,
+	}
+	// store this within session
+	m.App.Session.Put(r.Context(), "reservation", reservation)
+
+	// using predefined Data object from templatedata struct, pass in data
+	render.Template(w, r, "choose-room.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+
 }
 
 type jsonResponse struct {
@@ -120,14 +137,36 @@ func (m *Repository) PostAvailabilityModal(w http.ResponseWriter, r *http.Reques
 
 // Reservation renders the make-reservation page & displays associated form
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
-	var emptyReservation models.Reservation
+	// update the reservation data further (currently stored with only start/end dates & room id in session)
+	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(w, errors.New("cannot get reservation dates & room number from session"))
+		return
+	}
+
+	// get room name & populate Room, which is a member of Reservation model (only RoomName is required)
+	room, err := m.DB.GetRoomByID(reservation.RoomID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	reservation.Room.RoomName = room.RoomName
+
+	// format start/end dates as strings (instead of time.Time) & place into a StringMap (templatedata)
+	sd := reservation.StartDate.Format("02/01/2006")
+	ed := reservation.EndDate.Format("02/01/2006")
+	stringMap := make(map[string]string)
+	stringMap["start_date"] = sd
+	stringMap["end_date"] = ed
+
 	data := make(map[string]interface{})
-	data["reservation"] = emptyReservation
+	data["reservation"] = reservation
 
 	render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
 		// provide access to template data's (initially empty) Form object first time this page is rendered
-		Form: forms.NewForm(nil),
-		Data: data,
+		Form:      forms.NewForm(nil),
+		Data:      data,
+		StringMap: stringMap,
 	})
 }
 
@@ -241,6 +280,27 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	render.Template(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
 		Data: data,
 	})
+}
+
+//
+func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
+	// get id from room link clicked
+	roomID, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	// update the reservation data (currently stored with only start/end dates in session), with the required room id
+	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(w, err)
+		return
+	}
+	// add roomID to reservation model, put it back into the session & redirect to make-reservation page
+	reservation.RoomID = roomID
+	m.App.Session.Put(r.Context(), "reservation", reservation)
+	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
+
 }
 
 // Contact is the handler for the contact page

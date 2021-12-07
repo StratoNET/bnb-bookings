@@ -74,9 +74,9 @@ func run_main() (*database.DB, error) {
 	// apply session parameters throughout application
 	app.Session = session
 
-	// connect to database
+	// connect to database (parseTime parameter allows for parsing MySQL []uint8 timestamps as Go *time.Time type)
 	log.Println("Connecting to database...")
-	db, err := database.ConnectSQL("root:@tcp(localhost:3306)/bnb-bookings")
+	db, err := database.ConnectSQL("root:@tcp(localhost:3306)/bnb-bookings?parseTime=true")
 	if err != nil {
 		log.Fatal("Cannot connect to database ! ... terminating...")
 	}
