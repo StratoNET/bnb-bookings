@@ -146,14 +146,18 @@ function Inform() {
   async function customModal(params) {
     const {
       title = "",
+      icon = "",
       msg = "",
+      showConfirmButton = true,
     } = params;
 
     const {value: result} = await Swal.fire({
       title: title,
+      icon: icon,
       html: msg,
       backdrop: false,
       focusConfirm: false,
+      showConfirmButton: showConfirmButton,
       showCancelButton: true,
       willOpen: () => {
         if (params.willOpen !== undefined) {

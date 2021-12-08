@@ -73,7 +73,7 @@ func (m *mariaDBRepository) SearchAvailabilityByDatesAndRoomID(start, end time.T
 
 	var numRows int
 
-	query := `SELECT COUNT(id) FROM room_restrictions WHERE roomID = ? AND ? < end_date AND ? > start_date;`
+	query := `SELECT COUNT(id) FROM room_restrictions WHERE room_id = ? AND ? < end_date AND ? > start_date;`
 
 	row := m.DB.QueryRowContext(ctx, query, roomID, start, end)
 	err := row.Scan(&numRows)

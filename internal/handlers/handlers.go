@@ -116,16 +116,51 @@ func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 }
 
 type jsonResponse struct {
-	Ok      bool   `json:"ok"`
-	Message string `json:"message"`
+	Ok        bool   `json:"ok"`
+	Message   string `json:"message"`
+	RoomID    string `json:"room_id"`
+	StartDate string `json:"start_date"`
+	EndDate   string `json:"end_date"`
 }
 
 // PostAvailabilityModal handles request for modal availability search & returns JSON response
 func (m *Repository) PostAvailabilityModal(w http.ResponseWriter, r *http.Request) {
-	rsp := jsonResponse{
-		Ok:      false,
-		Message: "Available !",
+
+	start := r.Form.Get("start_date")
+	end := r.Form.Get("end_date")
+
+	// parse dates as appropriate, format required is dd/mm/yyyy -- (Go format reminder is 01/02 03:04:05PM '06 -0700)
+	layout := "02/01/2006"
+	startDate, err := time.Parse(layout, start)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
 	}
+	endDate, err := time.Parse(layout, end)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	roomID, err := strconv.Atoi(r.Form.Get("room_id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	available, err := m.DB.SearchAvailabilityByDatesAndRoomID(startDate, endDate, roomID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	rsp := jsonResponse{
+		Ok:        available,
+		Message:   "",
+		RoomID:    strconv.Itoa(roomID),
+		StartDate: start,
+		EndDate:   end,
+	}
+
 	out, err := json.MarshalIndent(rsp, "", "    ")
 	if err != nil {
 		helpers.ServerError(w, err)
@@ -199,8 +234,10 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	// perform all necessary validations
 
 	// form.HasField("first_name", r)
-	form.RequiredFields("first_name", "last_name", "email")
+	form.RequiredFields("first_name", "last_name", "email", "phone")
 	form.MinLength("first_name", 2)
+	form.MinLength("last_name", 2)
+	form.MinLength("phone", 6)
 	form.IsEmail("email")
 
 	if !form.ValidForm() {

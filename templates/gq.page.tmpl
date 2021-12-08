@@ -73,11 +73,10 @@
           ]
         },
         callback: function(result) {
-          console.log("It was called !");
-
           let modalForm = document.getElementById("availabilityModalForm");
           let modalFormData = new FormData(modalForm);
           modalFormData.append("csrf_token", "{{.CSRFToken}}");
+          modalFormData.append("room_id", "1");
 
           fetch('/search-availability-modal', {
             method: "post",
@@ -85,9 +84,19 @@
           })
           .then(response => response.json())
           .then(data => {
-            console.log(data);
-            console.log(data.ok);
-            console.log(data.message);
+            if (data.ok) {
+              attention.customModal({
+                title: "This room is available !",
+                icon: "success",
+                msg: '<p><a href="/reserve-room?id=' + data.room_id + '&sd=' + data.start_date + '&ed=' + data.end_date + '"' +
+                  ' class="btn btn-primary mt-4">Reserve Now !</a></p>',
+                showConfirmButton: false,
+              })
+            } else {
+              attention.error({
+                msg: "Sorry, this room is not available",
+              });
+            }
           });
         }
       });
