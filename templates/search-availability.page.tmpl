@@ -40,6 +40,8 @@
     const rd = document.getElementById('reservation-dates');
     const rangePicker = new DateRangePicker(rd, {
       format: "dd/mm/yyyy",
+      minDate: new Date(),
+      todayHighlight: true,
     });
   </script>
 {{end}}

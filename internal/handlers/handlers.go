@@ -91,7 +91,7 @@ func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 
 	if len(rooms) == 0 {
 		// no availability
-		m.App.Session.Put(r.Context(), "error", "Sorry, no availability (at least for the entire requested period)")
+		m.App.Session.Put(r.Context(), "error", "Sorry, no availability for the specific requested period)")
 		http.Redirect(w, r, "/search-availability", http.StatusSeeOther)
 		return
 	}
@@ -137,7 +137,7 @@ func (m *Repository) PostAvailabilityModal(w http.ResponseWriter, r *http.Reques
 
 // Reservation renders the make-reservation page & displays associated form
 func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
-	// update the reservation data further (currently stored with only start/end dates & room id in session)
+	// update the reservation data further, currently stored with only start/end dates & also room id (since added by ChooseRoom() )
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
 		helpers.ServerError(w, errors.New("cannot get reservation dates & room number from session"))
@@ -152,7 +152,7 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 	}
 	reservation.Room.RoomName = room.RoomName
 
-	// format start/end dates as strings (instead of time.Time) & place into a StringMap (templatedata)
+	// format start/end dates as strings (instead of time.Time) & place into a StringMap (templatedata) for display in make-reservation page
 	sd := reservation.StartDate.Format("02/01/2006")
 	ed := reservation.EndDate.Format("02/01/2006")
 	stringMap := make(map[string]string)
@@ -161,6 +161,9 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 
 	data := make(map[string]interface{})
 	data["reservation"] = reservation
+
+	// put updated (with Room.RoomName) reservation back into session
+	m.App.Session.Put(r.Context(), "reservation", reservation)
 
 	render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
 		// provide access to template data's (initially empty) Form object first time this page is rendered
@@ -172,44 +175,24 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 
 // PostReservation is the handler for posting the make-reservation form
 func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
+	// update the reservation data further, currently stored with only start/end dates, room id & room name
+	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(w, errors.New("cannot get reservation dates, room number & room name from session"))
+		return
+	}
+
 	// initially ensure form data is parsed correctly
 	err := r.ParseForm()
 	if err != nil {
 		helpers.ServerError(w, err)
 		return
 	}
-	// populate an instance of reservation object with data user has entered, even if 'bad' data
-	sd := r.Form.Get("start_date")
-	ed := r.Form.Get("end_date")
 
-	// parse dates as appropriate, format required is dd/mm/yyyy -- (Go format reminder is 01/02 03:04:05PM '06 -0700)
-	layout := "02/01/2006"
-	startDate, err := time.Parse(layout, sd)
-	if err != nil {
-		helpers.ServerError(w, err)
-		return
-	}
-	endDate, err := time.Parse(layout, ed)
-	if err != nil {
-		helpers.ServerError(w, err)
-		return
-	}
-
-	roomID, err := strconv.Atoi(r.Form.Get("room_id"))
-	if err != nil {
-		helpers.ServerError(w, err)
-		return
-	}
-
-	reservation := models.Reservation{
-		RoomID:    roomID,
-		FirstName: r.Form.Get("first_name"),
-		LastName:  r.Form.Get("last_name"),
-		Email:     r.Form.Get("email"),
-		Phone:     r.Form.Get("phone"),
-		StartDate: startDate,
-		EndDate:   endDate,
-	}
+	reservation.FirstName = r.Form.Get("first_name")
+	reservation.LastName = r.Form.Get("last_name")
+	reservation.Email = r.Form.Get("email")
+	reservation.Phone = r.Form.Get("phone")
 
 	form := forms.NewForm(r.PostForm)
 
@@ -221,12 +204,20 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	form.IsEmail("email")
 
 	if !form.ValidForm() {
+		// format start/end dates as strings (instead of time.Time) & place into a StringMap (templatedata) for re-display in make-reservation page
+		sd := reservation.StartDate.Format("02/01/2006")
+		ed := reservation.EndDate.Format("02/01/2006")
+		stringMap := make(map[string]string)
+		stringMap["start_date"] = sd
+		stringMap["end_date"] = ed
+
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
 
 		render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
-			Form: form,
-			Data: data,
+			Form:      form,
+			Data:      data,
+			StringMap: stringMap,
 		})
 		return
 	}
@@ -240,11 +231,11 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 	// populate and instance of the RoomRestriction object, get ReservationID from LastInsertId() after executing InsertReservation()
 	room_restriction := models.RoomRestriction{
-		RoomID:        roomID,
+		RoomID:        reservation.RoomID,
 		ReservationID: lastReservationID,
 		RestrictionID: 1,
-		StartDate:     startDate,
-		EndDate:       endDate,
+		StartDate:     reservation.StartDate,
+		EndDate:       reservation.EndDate,
 	}
 
 	err = m.DB.InsertRoomRestriction(room_restriction)
@@ -272,13 +263,20 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	//reaching this point implies 'reservation' was successfully retrieved, therefore can now be removed from session
 	m.App.Session.Remove(r.Context(), "reservation")
 
+	// format start/end dates as strings (instead of time.Time) & place into a StringMap (templatedata) for display in reservation-summary page
+	sd := reservation.StartDate.Format("Monday 02 January 2006")
+	ed := reservation.EndDate.Format("Monday 02 January 2006")
+	stringMap := make(map[string]string)
+	stringMap["start_date"] = sd
+	stringMap["end_date"] = ed
+
 	// create data object and populate with reservation data
 	data := make(map[string]interface{})
 	data["reservation"] = reservation
 
-	// using predefined Data object from templatedata struct, pass in data
 	render.Template(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
-		Data: data,
+		Data:      data,
+		StringMap: stringMap,
 	})
 }
 
