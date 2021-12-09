@@ -18,6 +18,75 @@ let attention = Inform();
   }, false);
 })();
 
+
+function modalReservation(CSRF, roomID) {
+  document.getElementById("check-availability-btn").addEventListener("click", function () {
+    let modal_html = `
+    <div class="container">
+      <form id="availabilityModalForm" name="availabilityModalForm" action="" method="post" class="needs-validation" novalidate>
+        <div class="row" id="reservation-dates-modal">
+          <div class="col">
+            <input required class="form-control" type="text" name="start_date" id="start_date" placeholder=" Arrival date" disabled>
+          </div>
+          <div class="col">
+            <input required class="form-control" type="text" name="end_date" id="end_date" placeholder=" Departure date" disabled>
+          </div>
+        </div>
+      </form>
+    </div>`;
+    attention.customModal({
+      title: 'Choose your dates',
+      msg: modal_html,
+      willOpen: () => {
+        const rdm = document.getElementById("reservation-dates-modal");
+        const rp = new DateRangePicker(rdm, {
+          format: 'dd/mm/yyyy',
+          minDate: new Date(),
+          todayHighlight: true,
+          showOnFocus: true,
+        })
+      },
+      didOpen: () => {
+        document.getElementById("start_date").removeAttribute("disabled");
+        document.getElementById("end_date").removeAttribute("disabled");
+      },
+      preConfirm: () => {
+        return [
+          document.getElementById('start_date').value,
+          document.getElementById('end_date').value
+        ]
+      },
+      callback: function(result) {
+        let modalForm = document.getElementById("availabilityModalForm");
+        let modalFormData = new FormData(modalForm);
+        modalFormData.append("csrf_token", CSRF);
+        modalFormData.append("room_id", roomID);
+
+        fetch('/search-availability-modal', {
+          method: "post",
+          body: modalFormData,
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.ok) {
+            attention.customModal({
+              title: "This room is available !",
+              icon: "success",
+              msg: '<p><a href="/reserve-room?id=' + data.room_id + '&sd=' + data.start_date + '&ed=' + data.end_date + '"' +
+                ' class="btn btn-primary mt-4">Reserve Now !</a></p>',
+              showConfirmButton: false,
+            })
+          } else {
+            attention.error({
+              msg: "Sorry, this room is not available",
+            });
+          }
+        });
+      }
+    });
+  })
+}
+
 function notify(msg, msgType, duration) {
   // set fixed navbar z-index = 0 allowing full noti(e)fication display
   document.getElementById("navbar").style.zIndex = 0

@@ -317,7 +317,7 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	})
 }
 
-//
+// ChooseRoom puts room ID into session after clicking on available rooms in clickable list
 func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
 	// get id from room link clicked
 	roomID, err := strconv.Atoi(chi.URLParam(r, "id"))
@@ -341,4 +341,50 @@ func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
 // Contact is the handler for the contact page
 func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 	render.Template(w, r, "contact.page.tmpl", &models.TemplateData{})
+}
+
+// ReserveRoom takes URL parameters from modal dialog, puts them into session & redirects to make-reservation
+func (m *Repository) ReserveRoom(w http.ResponseWriter, r *http.Request) {
+	// retrieve parameters from url get request
+	roomID, err := strconv.Atoi(r.URL.Query().Get("id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	sd := r.URL.Query().Get("sd")
+	ed := r.URL.Query().Get("ed")
+
+	// parse dates as appropriate, format required is dd/mm/yyyy -- (Go format reminder is 01/02 03:04:05PM '06 -0700)
+	layout := "02/01/2006"
+	startDate, err := time.Parse(layout, sd)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	endDate, err := time.Parse(layout, ed)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	// instantiate a reservation
+	var reservation models.Reservation
+
+	// get room name & populate Room, which is a member of Reservation model (only RoomName is required)
+	room, err := m.DB.GetRoomByID(roomID)
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	// populate reservation with currently known details
+	reservation.RoomID = roomID
+	reservation.Room.RoomName = room.RoomName
+	reservation.StartDate = startDate
+	reservation.EndDate = endDate
+
+	// put all details back into the session & redirect to make-reservation page
+	m.App.Session.Put(r.Context(), "reservation", reservation)
+	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
+
 }
