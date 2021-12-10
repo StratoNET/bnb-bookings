@@ -12,9 +12,20 @@ type mariaDBRepository struct {
 	DB  *sql.DB
 }
 
+type testDBRepository struct {
+	App *config.AppConfig
+	DB  *sql.DB
+}
+
 func NewMariaDBRepository(conn *sql.DB, app *config.AppConfig) repository.DatabaseRepository {
 	return &mariaDBRepository{
 		App: app,
 		DB:  conn,
+	}
+}
+
+func NewTestingDBRepository(app *config.AppConfig) repository.DatabaseRepository {
+	return &testDBRepository{
+		App: app,
 	}
 }

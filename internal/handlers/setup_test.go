@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"testing"
 	"time"
 
 	"github.com/StratoNET/bnb-bookings/internal/config"
@@ -24,7 +25,7 @@ var session *scs.SessionManager
 var pathToTemplates = "./../../templates"
 var functions = template.FuncMap{}
 
-func getRoutes() http.Handler {
+func TestMain(m *testing.M) {
 	// session needs to be informed for storage of complex types, in this case...
 	gob.Register(models.Reservation{})
 
@@ -54,10 +55,15 @@ func getRoutes() http.Handler {
 	app.TemplateCache = tc
 	app.UseCache = true
 
-	repo := NewRepository(&app)
+	repo := NewTestRepository(&app)
 	NewHandlers(repo)
 
 	render.NewRenderer(&app)
+
+	os.Exit(m.Run())
+}
+
+func getRoutes() http.Handler {
 
 	mux := chi.NewRouter()
 

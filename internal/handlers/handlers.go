@@ -35,6 +35,14 @@ func NewRepository(a *config.AppConfig, db *database.DB) *Repository {
 	}
 }
 
+// NewTestRepository creates a new testing repository, which does NOT incorporate a db repository because db access NOT needed for unit tests
+func NewTestRepository(a *config.AppConfig) *Repository {
+	return &Repository{
+		App: a,
+		DB:  dbrepository.NewTestingDBRepository(a),
+	}
+}
+
 // NewHandlers sets repository for handlers
 func NewHandlers(r *Repository) {
 	Repo = r
