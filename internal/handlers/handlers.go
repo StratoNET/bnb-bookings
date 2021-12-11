@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"encoding/json"
-	"errors"
 	"net/http"
 	"strconv"
 	"time"
@@ -183,14 +182,16 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 	// update the reservation data further, currently stored with only start/end dates & also room id (since added by ChooseRoom() )
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
-		helpers.ServerError(w, errors.New("cannot get reservation dates & room number from session"))
+		m.App.Session.Put(r.Context(), "error", "#0001: cannot get reservation dates & room number from session")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
 	// get room name & populate Room, which is a member of Reservation model (only RoomName is required)
 	room, err := m.DB.GetRoomByID(reservation.RoomID)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "#0002: cannot get room number from database")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 	reservation.Room.RoomName = room.RoomName
@@ -221,14 +222,16 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	// update the reservation data further, currently stored with only start/end dates, room id & room name
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
-		helpers.ServerError(w, errors.New("cannot get reservation dates, room number & room name from session"))
+		m.App.Session.Put(r.Context(), "error", "#0004: cannot get reservation dates, room number & room name from session")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
 	// initially ensure form data is parsed correctly
 	err := r.ParseForm()
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "#0005: cannot parse reservation form")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -270,7 +273,8 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	// after all validation procedures are complete, insert reservation record into database
 	lastReservationID, err := m.DB.InsertReservation(reservation)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "#0006: cannot insert reservation into database")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -285,7 +289,8 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 	err = m.DB.InsertRoomRestriction(room_restriction)
 	if err != nil {
-		helpers.ServerError(w, err)
+		m.App.Session.Put(r.Context(), "error", "#0007: cannot insert 'room restriction', corresponding to current reservation, into database")
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
 
@@ -299,7 +304,6 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	// get reservation from session which requires type assertion/casting, this sets ok true (or false on failure)
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
-		m.App.ErrorLog.Println("Cannot get reservation from session")
 		m.App.Session.Put(r.Context(), "error", "There are no reservation details available to display")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return

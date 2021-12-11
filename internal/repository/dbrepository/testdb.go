@@ -1,6 +1,7 @@
 package dbrepository
 
 import (
+	"errors"
 	"time"
 
 	"github.com/StratoNET/bnb-bookings/internal/models"
@@ -34,5 +35,8 @@ func (m *testDBRepository) SearchAvailabilityForAllRooms(start, end time.Time) (
 // GetRoomByID gets room details, especially room name, by id
 func (m *testDBRepository) GetRoomByID(id int) (models.Room, error) {
 	var room models.Room
+	if id > 2 {
+		return room, errors.New("#0003: attempting to return room number greater than number of rooms available")
+	}
 	return room, nil
 }
