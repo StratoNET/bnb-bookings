@@ -2,13 +2,17 @@ package handlers
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"reflect"
 	"strings"
 	"testing"
+	"time"
 
+	"github.com/StratoNET/bnb-bookings/internal/database"
 	"github.com/StratoNET/bnb-bookings/internal/models"
 )
 
@@ -172,6 +176,21 @@ func TestRepository_PostReservation(t *testing.T) {
 		t.Errorf("PostReservation handler returned code: %d, expected code: %d", rr.Code, http.StatusSeeOther)
 	}
 
+	// test case where RESERVATION IS NOT IN THE SESSION (= reset everything)
+	// reinitialise request & context
+	req, _ = http.NewRequest("POST", "/make-reservation", nil)
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	// session has now been created but without a reservation, reinitialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	// serve request using 'fake' response writer
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("Reservation handler returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+
 	// test for MISSING POST BODY
 	// initialise request & context
 	req, _ = http.NewRequest("POST", "/make-reservation", nil)
@@ -191,6 +210,534 @@ func TestRepository_PostReservation(t *testing.T) {
 		t.Errorf("PostReservation handler returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
 	}
 
+	// test for failure of FORM VALIDATION
+	// create a request body for reservation data to be posted
+	postedData = url.Values{}
+	postedData.Add("start_date", "01/01/2099")
+	postedData.Add("end_date", "02/01/2099")
+	// postedData.Add("room_id", "1") ... already known
+	postedData.Add("first_name", "J") // will fail validation
+	postedData.Add("last_name", "Soap")
+	postedData.Add("email", "joe@soap.bar")
+	postedData.Add("phone", "01234 567890")
+
+	// initialise request & context, incorporate & encode data in post body
+	req, _ = http.NewRequest("POST", "/make-reservation", strings.NewReader(postedData.Encode()))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	session.Put(ctx, "reservation", reservation)
+
+	handler = http.HandlerFunc(Repo.PostReservation)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostReservation handler returned code: %d, expected code: %d", rr.Code, http.StatusSeeOther)
+	}
+
+	// test for failure to INSERT ROOM RESERVATION
+	// create a request body for reservation data to be posted
+	postedData = url.Values{}
+	postedData.Add("start_date", "01/01/2099")
+	postedData.Add("end_date", "02/01/2099")
+	// postedData.Add("room_id", "1") ... already known
+	postedData.Add("first_name", "Joe")
+	postedData.Add("last_name", "Soap")
+	postedData.Add("email", "joe@soap.bar")
+	postedData.Add("phone", "01234 567890")
+
+	// initialise request & context, incorporate & encode data in post body
+	req, _ = http.NewRequest("POST", "/make-reservation", strings.NewReader(postedData.Encode()))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	reservation.RoomID = 99 //will fail to insert reservation, room number does not exist
+
+	session.Put(ctx, "reservation", reservation)
+
+	handler = http.HandlerFunc(Repo.PostReservation)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("PostReservation handler returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+
+	// test for failure to INSERT ROOM RESTRICTION
+	// create a request body for reservation data to be posted
+	postedData = url.Values{}
+	postedData.Add("start_date", "01/01/2099")
+	postedData.Add("end_date", "02/01/2099")
+	// postedData.Add("room_id", "1") ... already known
+	postedData.Add("first_name", "Joe")
+	postedData.Add("last_name", "Soap")
+	postedData.Add("email", "joe@soap.bar")
+	postedData.Add("phone", "01234 567890")
+
+	// initialise request & context, incorporate & encode data in post body
+	req, _ = http.NewRequest("POST", "/make-reservation", strings.NewReader(postedData.Encode()))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	reservation.RoomID = 9999 //will fail to insert reservation, room number does not exist
+
+	session.Put(ctx, "reservation", reservation)
+
+	handler = http.HandlerFunc(Repo.PostReservation)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("PostReservation handler returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+}
+
+func TestRepository_PostAvailabilityModal(t *testing.T) {
+	// 1. NO ROOMS AVAILABLE
+	// create a request body for reservation data to be posted
+	postedData := url.Values{}
+	postedData.Add("start_date", "01/01/2099")
+	postedData.Add("end_date", "02/01/2099")
+	postedData.Add("room_id", "1")
+	// postedData.Add("first_name", "Joe")
+	// postedData.Add("last_name", "Soap")
+	// postedData.Add("email", "joe@soap.bar")
+	// postedData.Add("phone", "01234 567890")
+
+	// initialise request & context, incorporate & encode data in post body
+	req, _ := http.NewRequest("POST", "/search-availability-modal", strings.NewReader(postedData.Encode()))
+	ctx := getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr := httptest.NewRecorder()
+
+	handler := http.HandlerFunc(Repo.PostAvailabilityModal)
+
+	handler.ServeHTTP(rr, req)
+
+	var jr jsonResponse
+
+	err := json.Unmarshal([]byte(rr.Body.Bytes()), &jr)
+
+	if err != nil {
+		t.Error("PostAvailabilityModal handler failed to parse JSON", err)
+	}
+
+	// 2. CANNOT PARSE FORM (no form body)
+	// initialise request & context, incorporate & encode data in post body
+	req, _ = http.NewRequest("POST", "/search-availability-modal", nil)
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	handler = http.HandlerFunc(Repo.PostAvailabilityModal)
+
+	handler.ServeHTTP(rr, req)
+
+	err = json.Unmarshal([]byte(rr.Body.Bytes()), &jr)
+
+	if err != nil && !jr.Ok {
+		t.Error("PostAvailabilityModal handler failed to parse JSON", err)
+	}
+
+	// 3. CANNOT CONNECT TO DATABASE
+	// create a request body for reservation data to be posted
+	postedData = url.Values{}
+	postedData.Add("start_date", "01/01/2099")
+	postedData.Add("end_date", "02/01/2099")
+	postedData.Add("room_id", "1")
+	// postedData.Add("first_name", "Joe")
+	// postedData.Add("last_name", "Soap")
+	// postedData.Add("email", "joe@soap.bar")
+	// postedData.Add("phone", "01234 567890")
+	// initialise request & context, incorporate & encode data in post body
+	req, _ = http.NewRequest("POST", "/search-availability-modal", strings.NewReader(postedData.Encode()))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	handler = http.HandlerFunc(Repo.PostAvailabilityModal)
+
+	handler.ServeHTTP(rr, req)
+
+	err = json.Unmarshal([]byte(rr.Body.Bytes()), &jr)
+
+	if err != nil && !jr.Ok {
+		t.Error("PostAvailabilityModal handler failed to parse JSON & did NOT connect to database", err)
+	}
+
+	// 4. ROOMS AVAILABLE
+	// create a request body for reservation data to be posted
+	postedData = url.Values{}
+	postedData.Add("start_date", "02/01/2099")
+	postedData.Add("end_date", "03/01/2099")
+	postedData.Add("room_id", "1")
+	// postedData.Add("first_name", "Joe")
+	// postedData.Add("last_name", "Soap")
+	// postedData.Add("email", "joe@soap.bar")
+	// postedData.Add("phone", "01234 567890")
+	// initialise request & context, incorporate & encode data in post body
+	req, _ = http.NewRequest("POST", "/search-availability-modal", strings.NewReader(postedData.Encode()))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	handler = http.HandlerFunc(Repo.PostAvailabilityModal)
+
+	handler.ServeHTTP(rr, req)
+
+	err = json.Unmarshal([]byte(rr.Body.Bytes()), &jr)
+
+	if err != nil && !jr.Ok {
+		t.Error("PostAvailabilityModal did NOT find availability when there is !", err)
+	}
+}
+
+func TestNewRepository(t *testing.T) {
+	var db database.DB
+	testRepository := NewRepository(&app, &db)
+
+	if reflect.TypeOf(testRepository).String() != "*handlers.Repository" {
+		t.Errorf("Did not get correct type from NewRepository(): got %s, wanted *Repository", reflect.TypeOf(testRepository).String())
+	}
+}
+
+func TestRepository_PostAvailability(t *testing.T) {
+	// 1. ROOMS ARE NOT AVAILABLE
+	// create a request body for availability data to be posted
+	postedData := url.Values{}
+	postedData.Add("start_date", "01/01/2099")
+	postedData.Add("end_date", "02/01/2099")
+	// postedData.Add("room_id", "1")
+	// postedData.Add("first_name", "Joe")
+	// postedData.Add("last_name", "Soap")
+	// postedData.Add("email", "joe@soap.bar")
+	// postedData.Add("phone", "01234 567890")
+
+	// initialise request & context, incorporate & encode data in post body
+	req, _ := http.NewRequest("POST", "/search-availability", strings.NewReader(postedData.Encode()))
+	ctx := getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr := httptest.NewRecorder()
+
+	handler := http.HandlerFunc(Repo.PostAvailability)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("PostAvailability handler (NO ROOMS AVAILABLE) returned code: %d, expected code: %d", rr.Code, http.StatusSeeOther)
+	}
+
+	// 2. test for MISSING POST BODY
+	// reinitialise request & context
+	req, _ = http.NewRequest("POST", "/search-availability", nil)
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, reinitialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	handler = http.HandlerFunc(Repo.PostAvailability)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("PostReservation handler (MISSING POST BODY) returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+
+	// 3. test for ROOMS AVAILABLE
+	// create a request body for availability data to be posted
+	postedData = url.Values{}
+	postedData.Add("start_date", "01/01/2089")
+	postedData.Add("end_date", "02/01/2089")
+	// postedData.Add("room_id", "1")
+	// postedData.Add("first_name", "J") // will fail validation
+	// postedData.Add("last_name", "Soap")
+	// postedData.Add("email", "joe@soap.bar")
+	// postedData.Add("phone", "01234 567890")
+
+	// initialise request & context, incorporate & encode data in post body
+	req, _ = http.NewRequest("POST", "/search-availability", strings.NewReader(postedData.Encode()))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	handler = http.HandlerFunc(Repo.PostAvailability)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("PostAvailability handler (ROOMS AVAILABLE) returned code: %d, expected code: %d", rr.Code, http.StatusOK)
+	}
+
+	// 4. test for INVALID START DATE
+	// create a request body for availability data to be posted
+	postedData = url.Values{}
+	postedData.Add("start_date", "invalid")
+	postedData.Add("end_date", "02/01/2089")
+	// postedData.Add("room_id", "1")
+	// postedData.Add("first_name", "J") // will fail validation
+	// postedData.Add("last_name", "Soap")
+	// postedData.Add("email", "joe@soap.bar")
+	// postedData.Add("phone", "01234 567890")
+
+	// initialise request & context, incorporate & encode data in post body
+	req, _ = http.NewRequest("POST", "/search-availability", strings.NewReader(postedData.Encode()))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	handler = http.HandlerFunc(Repo.PostAvailability)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("PostAvailability handler (INVALID START DATE) returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+
+	// 5. test for INVALID END DATE
+	// create a request body for availability data to be posted
+	postedData = url.Values{}
+	postedData.Add("start_date", "01/01/2089")
+	postedData.Add("end_date", "invalid")
+	// postedData.Add("room_id", "1")
+	// postedData.Add("first_name", "J") // will fail validation
+	// postedData.Add("last_name", "Soap")
+	// postedData.Add("email", "joe@soap.bar")
+	// postedData.Add("phone", "01234 567890")
+
+	// initialise request & context, incorporate & encode data in post body
+	req, _ = http.NewRequest("POST", "/search-availability", strings.NewReader(postedData.Encode()))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	handler = http.HandlerFunc(Repo.PostAvailability)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("PostAvailability handler (INVALID END DATE) returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+
+	// 6. test for DATABASE QUERY FAILURE
+	// create a request body for availability data to be posted
+	postedData = url.Values{}
+	postedData.Add("start_date", "01/01/2100")
+	postedData.Add("end_date", "03/01/2100")
+	// postedData.Add("room_id", "1")
+	// postedData.Add("first_name", "J") // will fail validation
+	// postedData.Add("last_name", "Soap")
+	// postedData.Add("email", "joe@soap.bar")
+	// postedData.Add("phone", "01234 567890")
+
+	// initialise request & context, incorporate & encode data in post body
+	req, _ = http.NewRequest("POST", "/search-availability", strings.NewReader(postedData.Encode()))
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// session has now been incorporated, initialise 'fake' response writer
+	rr = httptest.NewRecorder()
+
+	handler = http.HandlerFunc(Repo.PostAvailability)
+
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("PostAvailability handler (DATABASE QUERY FAILURE) returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+}
+
+func TestRepository_ReservationSummary(t *testing.T) {
+	// necessary to create a reservation with room & dates information as would typically be within session before displaying summary
+	layout := "02/01/2006"
+	sd, _ := time.Parse(layout, "01/01/2080")
+	ed, _ := time.Parse(layout, "09/01/2080")
+	reservation := models.Reservation{
+		RoomID:    2,
+		StartDate: sd,
+		EndDate:   ed,
+		Room: models.Room{
+			ID:       2,
+			RoomName: "Major's Suite",
+		},
+	}
+
+	req, _ := http.NewRequest("GET", "/reservation-summary", nil)
+	ctx := getCtx(req)
+	req = req.WithContext(ctx)
+
+	// following code emulates a request/response lifecycle, therefor do NOT need to call any routes
+	rr := httptest.NewRecorder()
+
+	session.Put(ctx, "reservation", reservation)
+
+	handler := http.HandlerFunc(Repo.ReservationSummary)
+
+	// serve request using 'fake' response writer
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Errorf("ReservationSummary handler returned code: %d, expected code: %d", rr.Code, http.StatusOK)
+	}
+
+}
+
+func TestRepository_ChooseRoom(t *testing.T) {
+	// 1. Normal operation, reservation within session, URL parameter viable
+	// necessary to create a reservation with room & dates information as would typically be within session before displaying summary
+	layout := "02/01/2006"
+	sd, _ := time.Parse(layout, "01/01/2080")
+	ed, _ := time.Parse(layout, "09/01/2080")
+	reservation := models.Reservation{
+		RoomID:    2,
+		StartDate: sd,
+		EndDate:   ed,
+		Room: models.Room{
+			ID:       2,
+			RoomName: "Major's Suite",
+		},
+	}
+
+	req, _ := http.NewRequest("GET", "/choose-room/2", nil)
+	ctx := getCtx(req)
+	req = req.WithContext(ctx)
+
+	// set RequestURI on the request after WithContext() & get id
+	req.RequestURI = "/choose-room/2"
+
+	// following code emulates a request/response lifecycle, therefor do NOT need to call any routes
+	rr := httptest.NewRecorder()
+
+	session.Put(ctx, "reservation", reservation)
+
+	handler := http.HandlerFunc(Repo.ChooseRoom)
+
+	// serve request using 'fake' response writer
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("ChooseRoom handler (OPERATING CORRECTLY) returned code: %d, expected code: %d", rr.Code, http.StatusSeeOther)
+	}
+
+	// 2. Bad URL
+	req, _ = http.NewRequest("GET", "/choose-room/two", nil)
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+
+	// set RequestURI on the request after WithContext() & get id
+	req.RequestURI = "/choose-room/two"
+
+	// following code emulates a request/response lifecycle, therefor do NOT need to call any routes
+	rr = httptest.NewRecorder()
+
+	session.Put(ctx, "reservation", reservation)
+
+	handler = http.HandlerFunc(Repo.ChooseRoom)
+
+	// serve request using 'fake' response writer
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("ChooseRoom handler (BAD URL) returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+
+	// 3. Reservation missing from session
+	req, _ = http.NewRequest("GET", "/choose-room/2", nil)
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+
+	// set RequestURI on the request after WithContext() & get id
+	req.RequestURI = "/choose-room/2"
+
+	// following code emulates a request/response lifecycle, therefor do NOT need to call any routes
+	rr = httptest.NewRecorder()
+
+	handler = http.HandlerFunc(Repo.ChooseRoom)
+
+	// serve request using 'fake' response writer
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("ChooseRoom handler (MISSING RESERVATION) returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+}
+
+func TestRepository_ReserveRoom(t *testing.T) {
+	// necessary to create a reservation with room & dates information as would typically be within session before reserving room
+	layout := "02/01/2006"
+	sd, _ := time.Parse(layout, "01/01/2080")
+	ed, _ := time.Parse(layout, "09/01/2080")
+	reservation := models.Reservation{
+		RoomID:    2,
+		StartDate: sd,
+		EndDate:   ed,
+		Room: models.Room{
+			ID:       2,
+			RoomName: "Major's Suite",
+		},
+	}
+
+	// 1. successful room reservation / database operation
+	req, _ := http.NewRequest("GET", "/reserve-room?sd=01/01/2099&ed=02/01/2099&id=2", nil)
+	ctx := getCtx(req)
+	req = req.WithContext(ctx)
+
+	// following code emulates a request/response lifecycle, therefor do NOT need to call any routes
+	rr := httptest.NewRecorder()
+
+	session.Put(ctx, "reservation", reservation)
+
+	handler := http.HandlerFunc(Repo.ReserveRoom)
+
+	// serve request using 'fake' response writer
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusSeeOther {
+		t.Errorf("ReserveRoom handler (OPERATING CORRECTLY) returned code: %d, expected code: %d", rr.Code, http.StatusSeeOther)
+	}
+
+	// 2. cannot get room name from database
+	req, _ = http.NewRequest("GET", "/reserve-room?sd=01/01/2099&ed=02/01/2099&id=99", nil)
+	ctx = getCtx(req)
+	req = req.WithContext(ctx)
+
+	// following code emulates a request/response lifecycle, therefor do NOT need to call any routes
+	rr = httptest.NewRecorder()
+
+	handler = http.HandlerFunc(Repo.ReserveRoom)
+
+	// serve request using 'fake' response writer
+	handler.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusTemporaryRedirect {
+		t.Errorf("ReserveRoom handler (ROOM NAME MISSING) returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
+	}
 }
 
 // =====================================================================================================================================
