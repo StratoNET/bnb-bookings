@@ -2,7 +2,6 @@ package main
 
 import (
 	"encoding/gob"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -32,10 +31,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// only allow the database connection to close after main() executes fully
+	// only allow the database connection & email channel to close after main() executes fully i.e. application stops
 	defer db.SQL.Close()
+	defer close(app.MailChannel)
 
-	fmt.Printf("Starting application on port %s\n", portNumber)
+	// start anonymous, continuous email function in sendmail.go
+	infoLog.Println("Starting continuous email listening function...")
+	mailListener()
+
+	infoLog.Printf("Starting application on port %s\n", portNumber)
 
 	srv := &http.Server{
 		Addr:    portNumber,
@@ -56,6 +60,10 @@ func run_main() (*database.DB, error) {
 	gob.Register(models.RoomRestriction{})
 	gob.Register(models.RestrictionCategory{})
 
+	// create application email channel
+	mailChannel := make(chan models.MailData)
+	app.MailChannel = mailChannel
+
 	// set development / production mode
 	app.ProductionMode = false
 
@@ -75,12 +83,12 @@ func run_main() (*database.DB, error) {
 	app.Session = session
 
 	// connect to database (parseTime parameter allows for parsing MySQL []uint8 timestamps as Go *time.Time type)
-	log.Println("Connecting to database...")
+	infoLog.Println("Connecting to database...")
 	db, err := database.ConnectSQL("root:@tcp(localhost:3306)/bnb-bookings?parseTime=true")
 	if err != nil {
 		log.Fatal("Cannot connect to database ! ... terminating...")
 	}
-	log.Println("Connected to database OK")
+	infoLog.Println("Connected to database OK")
 
 	tc, err := render.CreateTemplateCache()
 	if err != nil {

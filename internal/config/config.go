@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"log"
 
+	"github.com/StratoNET/bnb-bookings/internal/models"
 	"github.com/alexedwards/scs/v2"
 )
 
@@ -15,4 +16,5 @@ type AppConfig struct {
 	InfoLog        *log.Logger
 	ErrorLog       *log.Logger
 	ProductionMode bool
+	MailChannel    chan models.MailData
 }
