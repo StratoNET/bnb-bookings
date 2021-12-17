@@ -314,14 +314,30 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 	// send email notification to guest
 	htmlMsg := fmt.Sprintf(`
-		<h3>Eden House: Reservation Confirmation</h3>
+		<h3 class="text-center">Eden House: Reservation Confirmation</h3>
 		<p>Dear %s&nbsp;%s</p>
 		<p>This is to confirm your reservation from %s to %s in the %s, we look forward to seeing you then.</p>
-	`, reservation.FirstName, reservation.LastName, reservation.StartDate.Format("02/01/2006"), reservation.EndDate.Format("02/01/2006"), reservation.Room.RoomName)
+	`, reservation.FirstName, reservation.LastName, reservation.StartDate.Format("Monday 02 January 2006"),
+		reservation.EndDate.Format("Monday 02 January 2006"), reservation.Room.RoomName)
 	msg := models.MailData{
-		To:      reservation.Email,
-		From:    "peter@barrett.com",
-		Subject: "Eden House: Reservation Confirmation",
+		To:       reservation.Email,
+		From:     "reservations@edenhouse.com",
+		Subject:  "Eden House: Reservation Confirmation",
+		Content:  htmlMsg,
+		Template: "basic.html",
+	}
+	m.App.MailChannel <- msg
+
+	// send email notification to owner / admin
+	htmlMsg = fmt.Sprintf(`
+		<h3>Eden House: Reservation Notification</h3>
+		<p>A reservation has been made by %s %s covering %s to %s for the %s.</p>
+	`, reservation.FirstName, reservation.LastName, reservation.StartDate.Format("02/01/2006"), reservation.EndDate.Format("02/01/2006"),
+		reservation.Room.RoomName)
+	msg = models.MailData{
+		To:      "reservations@edenhouse.com",
+		From:    "reservations@edenhouse.com",
+		Subject: "Eden House: Reservation Notification",
 		Content: htmlMsg,
 	}
 	m.App.MailChannel <- msg
