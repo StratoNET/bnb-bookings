@@ -37,6 +37,8 @@ func routes(app *config.AppConfig) http.Handler {
 
 	mux.Get("/contact", handlers.Repo.Contact)
 
+	mux.Get("/admin/login", handlers.Repo.Login)
+
 	// creat fileserver for static content
 	staticFileServer := http.FileServer(http.Dir("./static/"))
 	// handle any file within static sub-folders

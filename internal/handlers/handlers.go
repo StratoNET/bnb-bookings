@@ -441,3 +441,10 @@ func (m *Repository) ReserveRoom(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
 
 }
+
+// Login displays login page & gets the administrator's login form
+func (m *Repository) Login(w http.ResponseWriter, r *http.Request) {
+	render.Template(w, r, "login.page.tmpl", &models.TemplateData{
+		Form: forms.NewForm(nil),
+	})
+}
