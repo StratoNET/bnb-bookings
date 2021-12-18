@@ -278,7 +278,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 		data := make(map[string]interface{})
 		data["reservation"] = reservation
 
-		http.Error(w, "#0006: invalid form details submitted", http.StatusSeeOther)
+		m.App.Session.Put(r.Context(), "error", "#0006: invalid form details submitted")
 
 		render.Template(w, r, "make-reservation.page.tmpl", &models.TemplateData{
 			Form:      form,

@@ -235,8 +235,8 @@ func TestRepository_PostReservation(t *testing.T) {
 
 	handler.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusSeeOther {
-		t.Errorf("PostReservation handler returned code: %d, expected code: %d", rr.Code, http.StatusSeeOther)
+	if rr.Code != http.StatusOK {
+		t.Errorf("PostReservation handler returned code: %d, expected code: %d", rr.Code, http.StatusOK)
 	}
 
 	// test for failure to INSERT ROOM RESERVATION

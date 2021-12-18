@@ -47,6 +47,13 @@ func TestMain(m *testing.M) {
 	// apply session parameters throughout application
 	app.Session = session
 
+	// setup a mail channel but don't actually send mail
+	mailChannel := make(chan models.MailData)
+	app.MailChannel = mailChannel
+	defer close(mailChannel)
+
+	mailListener()
+
 	tc, err := CreateTestTemplateCache()
 	if err != nil {
 		log.Fatal("cannot create application template cache")
@@ -61,6 +68,14 @@ func TestMain(m *testing.M) {
 	render.NewRenderer(&app)
 
 	os.Exit(m.Run())
+}
+
+func mailListener() {
+	go func() {
+		for {
+			<-app.MailChannel
+		}
+	}()
 }
 
 func getRoutes() http.Handler {
