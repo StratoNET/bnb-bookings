@@ -85,3 +85,19 @@ func (m *testDBRepository) GetRoomByID(id int) (models.Room, error) {
 	}
 	return room, nil
 }
+
+// GetAdministratorByID does exactly that
+func (m *testDBRepository) GetAdministratorByID(id int) (models.Administrator, error) {
+	var admin models.Administrator
+	return admin, nil
+}
+
+// UpdateAdministrator updates an administrator record in the database
+func (m *testDBRepository) UpdateAdministrator(admin models.Administrator) error {
+	return nil
+}
+
+// AuthenticateAdministrator does exactly that
+func (m *testDBRepository) AuthenticateAdministrator(email, password string) (int, string, error) {
+	return 1, "", nil
+}

@@ -2,9 +2,11 @@ package dbrepository
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/StratoNET/bnb-bookings/internal/models"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func (m *mariaDBRepository) AllAdministrators() bool {
@@ -147,4 +149,84 @@ func (m *mariaDBRepository) GetRoomByID(id int) (models.Room, error) {
 	}
 
 	return room, nil
+}
+
+// GetAdministratorByID does exactly that
+func (m *mariaDBRepository) GetAdministratorByID(id int) (models.Administrator, error) {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT * FROM administrators WHERE id = ?;`
+
+	row := m.DB.QueryRowContext(ctx, query, id)
+
+	var admin models.Administrator
+	err := row.Scan(
+		&admin.ID,
+		&admin.FirstName,
+		&admin.LastName,
+		&admin.Email,
+		&admin.Password,
+		&admin.AccessLevel,
+		&admin.CreatedAt,
+		&admin.UpdatedAt,
+	)
+
+	if err != nil {
+		return admin, err
+	}
+
+	return admin, nil
+}
+
+// UpdateAdministrator updates an administrator record in the database
+func (m *mariaDBRepository) UpdateAdministrator(admin models.Administrator) error {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `UPDATE administrators SET first_name = ?, last_name = ?, email = ?, access_level = ?, updated_at = ? ;`
+
+	_, err := m.DB.ExecContext(ctx, query,
+		admin.FirstName,
+		admin.LastName,
+		admin.Email,
+		admin.AccessLevel,
+		time.Now(),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// AuthenticateAdministrator does exactly that
+func (m *mariaDBRepository) AuthenticateAdministrator(email, password string) (int, string, error) {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	// (id) holds ID of administrator after authentication, along with (hPassword)... their hashed password
+	var id int
+	var hPassword string
+
+	// initially get the id and stored hashed password of the administrator to authenticate via the email address
+	row := m.DB.QueryRowContext(ctx, "SELECT id, password FROM administrators WHERE email = ? ;", email)
+	err := row.Scan(&id, &hPassword)
+	if err != nil {
+		return id, "", err
+	}
+
+	// at this point, initial test to find an administrator record with given email is passed, continue by comparing hashed password = password
+	err = bcrypt.CompareHashAndPassword([]byte(hPassword), []byte(password))
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		return 0, "", errors.New("incorrect password given, does NOT match stored password")
+	} else if err != nil {
+		return 0, "", err
+	}
+
+	return id, hPassword, nil
 }

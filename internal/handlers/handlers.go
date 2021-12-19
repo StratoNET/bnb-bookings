@@ -448,3 +448,42 @@ func (m *Repository) Login(w http.ResponseWriter, r *http.Request) {
 		Form: forms.NewForm(nil),
 	})
 }
+
+//PostLogin handles administrator login
+func (m *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
+	// prevent session fixation attack
+	_ = m.App.Session.RenewToken(r.Context())
+	// parse form
+	err := r.ParseForm()
+	if err != nil {
+		m.App.ErrorLog.Println(err)
+	}
+	email := r.Form.Get("email")
+	password := r.Form.Get("password")
+	// validation...
+	form := forms.NewForm(r.PostForm)
+	form.RequiredFields("email", "password")
+	form.IsEmail("email")
+	if !form.ValidForm() {
+		stringMap := make(map[string]string)
+		stringMap["email"] = email
+		stringMap["password"] = password
+		render.Template(w, r, "login.page.tmpl", &models.TemplateData{
+			Form:      form,
+			StringMap: stringMap,
+		})
+		return
+	}
+	// attempt administrator authentication
+	id, _, err := m.DB.AuthenticateAdministrator(email, password)
+	if err != nil {
+		m.App.ErrorLog.Println(err)
+		m.App.Session.Put(r.Context(), "error", "Please check - invalid login credentials")
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+	// store the returned administrator's id in session
+	m.App.Session.Put(r.Context(), "admin_id", id)
+	m.App.Session.Put(r.Context(), "flash", "Logged in successfully")
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
