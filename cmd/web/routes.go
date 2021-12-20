@@ -38,7 +38,14 @@ func routes(app *config.AppConfig) http.Handler {
 	mux.Get("/contact", handlers.Repo.Contact)
 
 	mux.Get("/login", handlers.Repo.Login)
+	mux.Get("/logout", handlers.Repo.Logout)
 	mux.Post("/login", handlers.Repo.PostLogin)
+
+	// provides access to any protected routes beginning "/admin" & uses middleware Auth() to determine authentication
+	mux.Route("/admin", func(mux chi.Router) {
+		mux.Use(Auth)
+		mux.Get("/dashboard", handlers.Repo.AdministratorDashboard)
+	})
 
 	// creat fileserver for static content
 	staticFileServer := http.FileServer(http.Dir("./static/"))

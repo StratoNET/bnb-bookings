@@ -32,6 +32,10 @@ func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateDa
 	td.Flash = app.Session.PopString(r.Context(), "flash")
 	td.Warning = app.Session.PopString(r.Context(), "warning")
 	td.Error = app.Session.PopString(r.Context(), "error")
+	// determine if session user is authenticated by checking for their id
+	if app.Session.Exists(r.Context(), "admin_id") {
+		td.IsAuthenticated = true
+	}
 	return td
 }
 

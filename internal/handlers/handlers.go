@@ -487,3 +487,15 @@ func (m *Repository) PostLogin(w http.ResponseWriter, r *http.Request) {
 	m.App.Session.Put(r.Context(), "flash", "Logged in successfully")
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
+
+// Logout logs an administrator out
+func (m *Repository) Logout(w http.ResponseWriter, r *http.Request) {
+	_ = m.App.Session.Destroy(r.Context())
+	_ = m.App.Session.RenewToken(r.Context())
+	http.Redirect(w, r, "/login", http.StatusSeeOther)
+}
+
+// AdministratorDashboard gets the reservations management dashboard
+func (m *Repository) AdministratorDashboard(w http.ResponseWriter, r *http.Request) {
+	render.Template(w, r, "administrator-dashboard.page.tmpl", &models.TemplateData{})
+}
