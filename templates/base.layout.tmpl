@@ -113,15 +113,15 @@
 
     <!-- setup message types using notie via notify() -->
     {{with .Flash}}
-      <script>notify("{{.}}", "success", 5);</script>
+      <script>notify("{{.}}", "success", 3);</script>
     {{end}}
 
     {{with .Warning}}
-      <script>notify("{{.}}", "warning", 5);</script>
+      <script>notify("{{.}}", "warning", 3);</script>
     {{end}}
 
     {{with .Error}}
-      <script>notify("{{.}}", "error", 5);</script>
+      <script>notify("{{.}}", "error", 3);</script>
     {{end}}
     <!-- ============================================ -->
 

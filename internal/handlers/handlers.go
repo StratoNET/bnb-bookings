@@ -507,7 +507,19 @@ func (m *Repository) AdminReservationsNew(w http.ResponseWriter, r *http.Request
 
 // AdminReservationsAll gets all reservations
 func (m *Repository) AdminReservationsAll(w http.ResponseWriter, r *http.Request) {
-	render.Template(w, r, "admin-reservations-all.page.tmpl", &models.TemplateData{})
+	reservations, err := m.DB.GetAllReservations()
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "#0013: cannot get all reservations from database")
+		http.Redirect(w, r, "/admin/dashboard", http.StatusTemporaryRedirect)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservations"] = reservations
+
+	render.Template(w, r, "admin-reservations-all.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
 }
 
 // AdminReservationsCalendar gets the reservations displayed in calendar block format

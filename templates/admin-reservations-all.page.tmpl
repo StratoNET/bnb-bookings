@@ -1,11 +1,63 @@
 {{template "admin" .}}
 
+{{define "css"}}
+  <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet">
+{{end}}
+
 {{define "page-title"}}
 All Reservations
 {{end}}
 
 {{define "content"}}
-<div class="col-md-12">
-  All Reservations content
+<div class="row">
+  <div class="col-md-12">
+    {{$rsvn := index .Data "reservations"}}
+
+    <table id="all-reservations" class="table table-primary table-striped table-hover">
+      <thead>
+        <tr>
+          <th>Last Name</th>
+          <th>First Name</th>
+          <th>Room</th>
+          <th>Email</th>
+          <th>Phone</th>
+          <th>Arrival Date</th>
+          <th>Departure Date</th>
+        </tr>
+      </thead>
+      <tbody>
+      {{range $rsvn}}
+        <tr>
+          <td>
+            <a href="/admin/reservations/all/{{.ID}}">{{.LastName}}</a>
+          </td>
+          <td>{{.FirstName}}</td>
+          <td>{{.Room.RoomName}}</td>
+          <td>{{.Email}}</td>
+          <td>{{.Phone}}</td>
+          <td>{{dateTime24UK .StartDate}}</td>
+          <td>{{dateTime24UK .EndDate}}</td>
+        </tr>
+      {{end}}
+      </tbody>
+    </table>
+  </div>
 </div>
+{{end}}
+
+{{define "js"}}
+  <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      const dataTable = new simpleDatatables.DataTable("#all-reservations", {
+      // do not allow sorting of dates by javascript, these are soted by SQL query
+        columns: [
+          {
+            select: [5,6],
+            sortable: false,
+          }
+        ]
+      })
+    })
+  </script>
 {{end}}

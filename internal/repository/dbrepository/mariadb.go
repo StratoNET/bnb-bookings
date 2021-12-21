@@ -230,3 +230,50 @@ func (m *mariaDBRepository) AuthenticateAdministrator(email, password string) (i
 
 	return id, hPassword, nil
 }
+
+// GetAllReservations returns all reservations as a slice of models.Reservation
+func (m *mariaDBRepository) GetAllReservations() ([]models.Reservation, error) {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var reservations []models.Reservation
+
+	query := `SELECT r.*, rm.id, rm.room_name FROM reservations r LEFT JOIN rooms rm ON (r.room_id = rm.id) ORDER BY r.start_date ASC;`
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return reservations, err
+	}
+	// must close rows after function has executed
+	defer rows.Close()
+
+	for rows.Next() {
+		var r models.Reservation
+		err := rows.Scan(
+			&r.ID,
+			&r.RoomID,
+			&r.FirstName,
+			&r.LastName,
+			&r.Email,
+			&r.Phone,
+			&r.StartDate,
+			&r.EndDate,
+			&r.CreatedAt,
+			&r.UpdatedAt,
+			&r.Room.ID,
+			&r.Room.RoomName,
+		)
+
+		if err != nil {
+			return reservations, err
+		}
+		reservations = append(reservations, r)
+	}
+
+	if err = rows.Err(); err != nil {
+		return reservations, err
+	}
+
+	return reservations, nil
+}

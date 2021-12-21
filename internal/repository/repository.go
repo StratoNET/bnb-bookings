@@ -18,4 +18,6 @@ type DatabaseRepository interface {
 	GetAdministratorByID(id int) (models.Administrator, error)
 	UpdateAdministrator(admin models.Administrator) error
 	AuthenticateAdministrator(email, password string) (int, string, error)
+
+	GetAllReservations() ([]models.Reservation, error)
 }

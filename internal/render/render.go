@@ -8,17 +8,26 @@ import (
 	"log"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/StratoNET/bnb-bookings/internal/config"
 	"github.com/StratoNET/bnb-bookings/internal/models"
 	"github.com/justinas/nosurf"
 )
 
-var functions = template.FuncMap{}
+// functions / FuncMap makes utility functions available throughout application templates
+var functions = template.FuncMap{
+	"dateTime24UK": DateTime24UK,
+}
 
 var app *config.AppConfig
 
 var pathToTemplates = "./templates"
+
+// DateTimeUK returns a date & time formatted for UK
+func DateTime24UK(t time.Time) string {
+	return t.Format("02/01/2006 (Mon) 15:04")
+}
 
 // NewRenderer sets config for template package
 func NewRenderer(a *config.AppConfig) {

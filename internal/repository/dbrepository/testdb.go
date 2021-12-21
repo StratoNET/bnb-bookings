@@ -101,3 +101,10 @@ func (m *testDBRepository) UpdateAdministrator(admin models.Administrator) error
 func (m *testDBRepository) AuthenticateAdministrator(email, password string) (int, string, error) {
 	return 1, "", nil
 }
+
+// GetAllReservations returns all reservations as a slice of models.Reservation
+func (m *testDBRepository) GetAllReservations() ([]models.Reservation, error) {
+	// transaction given 3 seconds to complete, after which connection will be released
+	var reservations []models.Reservation
+	return reservations, nil
+}
