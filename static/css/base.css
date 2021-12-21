@@ -16,6 +16,11 @@ main > .container {
   padding: 60px 15px 0;
 }
 
+/* noti(e)fication z-index (2) needs to be > fixed-top navbar (1030) */
+.notie-container {
+  z-index: 2000;
+}
+
 /* === begin notie background colours === */
 
 .notie-background-success {
