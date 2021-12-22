@@ -20,4 +20,6 @@ type DatabaseRepository interface {
 	AuthenticateAdministrator(email, password string) (int, string, error)
 
 	GetAllReservations() ([]models.Reservation, error)
+	GetNewReservations() ([]models.Reservation, error)
+	GetReservationByID(id int) (models.Reservation, error)
 }

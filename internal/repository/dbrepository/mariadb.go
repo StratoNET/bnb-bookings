@@ -19,8 +19,8 @@ func (m *mariaDBRepository) InsertReservation(rsvn models.Reservation) (int64, e
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	stmt := `INSERT INTO reservations (room_id, first_name, last_name, email, phone, start_date, end_date, created_at, updated_at) 
-	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`
+	stmt := `INSERT INTO reservations (room_id, first_name, last_name, email, phone, start_date, end_date, processed, created_at, updated_at) 
+	VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`
 
 	res, err := m.DB.ExecContext(ctx, stmt,
 		rsvn.RoomID,
@@ -30,6 +30,7 @@ func (m *mariaDBRepository) InsertReservation(rsvn models.Reservation) (int64, e
 		rsvn.Phone,
 		rsvn.StartDate,
 		rsvn.EndDate,
+		0,
 		time.Now(),
 		time.Now(),
 	)
@@ -259,6 +260,7 @@ func (m *mariaDBRepository) GetAllReservations() ([]models.Reservation, error) {
 			&r.Phone,
 			&r.StartDate,
 			&r.EndDate,
+			&r.Processed,
 			&r.CreatedAt,
 			&r.UpdatedAt,
 			&r.Room.ID,
@@ -276,4 +278,87 @@ func (m *mariaDBRepository) GetAllReservations() ([]models.Reservation, error) {
 	}
 
 	return reservations, nil
+}
+
+// GetNewReservations returns only new reservations as a slice of models.Reservation
+func (m *mariaDBRepository) GetNewReservations() ([]models.Reservation, error) {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var reservations []models.Reservation
+
+	query := `SELECT r.*, rm.id, rm.room_name FROM reservations r LEFT JOIN rooms rm ON (r.room_id = rm.id) 
+	WHERE r.processed = 0 ORDER BY r.start_date ASC;`
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return reservations, err
+	}
+	// must close rows after function has executed
+	defer rows.Close()
+
+	for rows.Next() {
+		var r models.Reservation
+		err := rows.Scan(
+			&r.ID,
+			&r.RoomID,
+			&r.FirstName,
+			&r.LastName,
+			&r.Email,
+			&r.Phone,
+			&r.StartDate,
+			&r.EndDate,
+			&r.Processed,
+			&r.CreatedAt,
+			&r.UpdatedAt,
+			&r.Room.ID,
+			&r.Room.RoomName,
+		)
+
+		if err != nil {
+			return reservations, err
+		}
+		reservations = append(reservations, r)
+	}
+
+	if err = rows.Err(); err != nil {
+		return reservations, err
+	}
+
+	return reservations, nil
+}
+
+// GetReservationByID returns only one reservation as a models.Reservation
+func (m *mariaDBRepository) GetReservationByID(id int) (models.Reservation, error) {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var r models.Reservation
+
+	query := `SELECT r.*, rm.id, rm.room_name FROM reservations r LEFT JOIN rooms rm ON (r.room_id = rm.id) WHERE r.id = ?;`
+
+	row := m.DB.QueryRowContext(ctx, query, id)
+	err := row.Scan(
+		&r.ID,
+		&r.RoomID,
+		&r.FirstName,
+		&r.LastName,
+		&r.Email,
+		&r.Phone,
+		&r.StartDate,
+		&r.EndDate,
+		&r.Processed,
+		&r.CreatedAt,
+		&r.UpdatedAt,
+		&r.Room.ID,
+		&r.Room.RoomName,
+	)
+
+	if err != nil {
+		return r, err
+	}
+
+	return r, nil
 }

@@ -17,7 +17,7 @@ import (
 
 // functions / FuncMap makes utility functions available throughout application templates
 var functions = template.FuncMap{
-	"dateTime24UK": DateTime24UK,
+	"dateUK": DateUK,
 }
 
 var app *config.AppConfig
@@ -25,8 +25,8 @@ var app *config.AppConfig
 var pathToTemplates = "./templates"
 
 // DateTimeUK returns a date & time formatted for UK
-func DateTime24UK(t time.Time) string {
-	return t.Format("02/01/2006 (Mon) 15:04")
+func DateUK(t time.Time) string {
+	return t.Format("02/01/2006")
 }
 
 // NewRenderer sets config for template package

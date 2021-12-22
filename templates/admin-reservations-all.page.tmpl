@@ -5,56 +5,59 @@
 {{end}}
 
 {{define "page-title"}}
-All Reservations
+  All Reservations
 {{end}}
 
 {{define "content"}}
-<div class="row">
-  <div class="col-md-12">
-    {{$rsvn := index .Data "reservations"}}
+  <div class="row">
+    <div class="col-md-12">
+      {{$rsvn := index .Data "reservations"}}
 
-    <table id="all-reservations" class="table table-primary table-striped table-hover">
-      <thead>
-        <tr>
-          <th>Last Name</th>
-          <th>First Name</th>
-          <th>Room</th>
-          <th>Email</th>
-          <th>Phone</th>
-          <th>Arrival Date</th>
-          <th>Departure Date</th>
-        </tr>
-      </thead>
-      <tbody>
-      {{range $rsvn}}
-        <tr>
-          <td>
-            <a href="/admin/reservations/all/{{.ID}}">{{.LastName}}</a>
-          </td>
-          <td>{{.FirstName}}</td>
-          <td>{{.Room.RoomName}}</td>
-          <td>{{.Email}}</td>
-          <td>{{.Phone}}</td>
-          <td>{{dateTime24UK .StartDate}}</td>
-          <td>{{dateTime24UK .EndDate}}</td>
-        </tr>
-      {{end}}
-      </tbody>
-    </table>
+      <table id="all-reservations" class="table table-primary table-striped table-hover">
+        <thead>
+          <tr>
+            <th>Last Name</th>
+            <th>First Name</th>
+            <th>Email</th>
+            <th>Phone</th>
+            <th>Room</th>
+            <th data-type="date" data-format="DD/MM/YYYY">Arrival Date</th>
+            <th data-type="date" data-format="DD/MM/YYYY">Departure Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{range $rsvn}}
+            <tr>
+              <td>
+                <a href="/admin/reservations/all/{{.ID}}">{{.LastName}}</a>
+              </td>
+              <td>{{.FirstName}}</td>
+              <td>{{.Email}}</td>
+              <td>{{.Phone}}</td>
+              <td>{{.Room.RoomName}}</td>
+              <td>{{dateUK .StartDate}}</td>
+              <td>{{dateUK .EndDate}}</td>
+            </tr>
+          {{end}}
+        </tbody>
+      </table>
+    </div>
   </div>
-</div>
 {{end}}
 
 {{define "js"}}
   <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function() {
-      const dataTable = new simpleDatatables.DataTable("#all-reservations", {
-      // do not allow sorting of dates by javascript, these are soted by SQL query
+      let dataTable = new simpleDatatables.DataTable("#all-reservations", {
+        perPageSelect: [5, 10, 15, 20, 25, 30, 40, 50],
+        perPage: 20,
+        // allow sorting of specified format dates by javascript on both arrival(5) or departure(6)
         columns: [
           {
             select: [5,6],
-            sortable: false,
+            type: "date",
+            format: "DD/MM/YYYY",
           }
         ]
       })

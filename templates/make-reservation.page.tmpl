@@ -8,11 +8,11 @@
 
         {{$rsvn := index .Data "reservation"}}
 
-        <div class="make-reservation">
+        <div class="reservation-info">
           <ul>
-            <li>Room: {{$rsvn.Room.RoomName}}</li>
-            <li>Arrival Date: {{index .StringMap "start_date"}}</li>
-            <li>Departure Date: {{index .StringMap "end_date"}}</li>
+            <li>Room : {{$rsvn.Room.RoomName}}</li>
+            <li>Arrival Date : {{index .StringMap "start_date"}}</li>
+            <li>Departure Date : {{index .StringMap "end_date"}}</li>
           </ul>
         </div>
 
@@ -25,7 +25,7 @@
           <input type="hidden" name="room_id" value="{{$rsvn.RoomID}}">
 
           <div class="form-group mt-5">
-            <label for="first_name">First Name:</label>
+            <label for="first_name">First Name :</label>
             {{with .Form.Errors.GetErrMsg "first_name"}}
               <label class="text-danger">{{.}}</label>
             {{end}}
@@ -34,7 +34,7 @@
           </div>
   
           <div class="form-group">
-            <label for="last_name">Last Name:</label>
+            <label for="last_name">Last Name :</label>
             {{with .Form.Errors.GetErrMsg "last_name"}}
               <label class="text-danger">{{.}}</label>
             {{end}}
@@ -42,7 +42,7 @@
           </div>
   
           <div class="form-group">
-            <label for="email">Email:</label>
+            <label for="email">Email :</label>
             {{with .Form.Errors.GetErrMsg "email"}}
               <label class="text-danger">{{.}}</label>
             {{end}}
@@ -50,7 +50,7 @@
           </div>
   
           <div class="form-group">
-            <label for="phone">Phone No.:</label>
+            <label for="phone">Phone No. :</label>
             {{with .Form.Errors.GetErrMsg "phone"}}
               <label class="text-danger">{{.}}</label>
             {{end}}

@@ -500,16 +500,28 @@ func (m *Repository) AdminDashboard(w http.ResponseWriter, r *http.Request) {
 	render.Template(w, r, "admin-dashboard.page.tmpl", &models.TemplateData{})
 }
 
-// AdminReservationsNew gets any new reservations
+// AdminReservationsNew gets any new (unprocessed) reservations
 func (m *Repository) AdminReservationsNew(w http.ResponseWriter, r *http.Request) {
-	render.Template(w, r, "admin-reservations-new.page.tmpl", &models.TemplateData{})
+	reservations, err := m.DB.GetNewReservations()
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "#0013: cannot get new reservations from database")
+		http.Redirect(w, r, "/admin/dashboard", http.StatusTemporaryRedirect)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservations"] = reservations
+
+	render.Template(w, r, "admin-reservations-new.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
 }
 
 // AdminReservationsAll gets all reservations
 func (m *Repository) AdminReservationsAll(w http.ResponseWriter, r *http.Request) {
 	reservations, err := m.DB.GetAllReservations()
 	if err != nil {
-		m.App.Session.Put(r.Context(), "error", "#0013: cannot get all reservations from database")
+		m.App.Session.Put(r.Context(), "error", "#0014: cannot get all reservations from database")
 		http.Redirect(w, r, "/admin/dashboard", http.StatusTemporaryRedirect)
 		return
 	}
@@ -525,4 +537,35 @@ func (m *Repository) AdminReservationsAll(w http.ResponseWriter, r *http.Request
 // AdminReservationsCalendar gets the reservations displayed in calendar block format
 func (m *Repository) AdminReservationsCalendar(w http.ResponseWriter, r *http.Request) {
 	render.Template(w, r, "admin-reservations-cal.page.tmpl", &models.TemplateData{})
+}
+
+// AdminReservation gets a single reservation by id & displays it in form layout
+func (m *Repository) AdminReservation(w http.ResponseWriter, r *http.Request) {
+	// get id from reservation link clicked, get elements exploded on '/' & convert 4th element into string
+	elements := strings.Split(r.RequestURI, "/")
+	id, err := strconv.Atoi(elements[4])
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "#0015: missing URL parameter (id)")
+		http.Redirect(w, r, "/admin/dashboard", http.StatusTemporaryRedirect)
+		return
+	}
+	stringMap := make(map[string]string)
+	src := elements[3]
+	stringMap["src"] = src
+
+	reservation, err := m.DB.GetReservationByID(id)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "#0016: cannot get requested reservation from database")
+		http.Redirect(w, r, "/admin/dashboard", http.StatusTemporaryRedirect)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["reservation"] = reservation
+
+	render.Template(w, r, "admin-reservation.page.tmpl", &models.TemplateData{
+		Data:      data,
+		StringMap: stringMap,
+		Form:      forms.NewForm(nil),
+	})
 }

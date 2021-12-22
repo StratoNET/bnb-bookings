@@ -104,7 +104,18 @@ func (m *testDBRepository) AuthenticateAdministrator(email, password string) (in
 
 // GetAllReservations returns all reservations as a slice of models.Reservation
 func (m *testDBRepository) GetAllReservations() ([]models.Reservation, error) {
-	// transaction given 3 seconds to complete, after which connection will be released
 	var reservations []models.Reservation
 	return reservations, nil
+}
+
+// GetNewReservations returns only new reservations as a slice of models.Reservation
+func (m *testDBRepository) GetNewReservations() ([]models.Reservation, error) {
+	var reservations []models.Reservation
+	return reservations, nil
+}
+
+// GetReservationByID returns only one reservation as a models.Reservation
+func (m *testDBRepository) GetReservationByID(id int) (models.Reservation, error) {
+	var r models.Reservation
+	return r, nil
 }

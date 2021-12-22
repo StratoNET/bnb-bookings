@@ -40,6 +40,7 @@ type Reservation struct {
 	Phone     string
 	StartDate time.Time
 	EndDate   time.Time
+	Processed uint8
 	CreatedAt time.Time
 	UpdatedAt time.Time
 	Room      Room
