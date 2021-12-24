@@ -1,25 +1,18 @@
 {{define "admin"}}
   <!doctype html>
-  <html lang="en">
+  <html lang="en" class="h-100">
 
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="">
     <meta name="author" content="StratoNET Web Development">
-    <link rel="stylesheet" href="/static/admin/dashboard/vendors/ti-icons/css/themify-icons.css">
-    <link rel="stylesheet" href="/static/admin/dashboard/vendors/base/vendor.bundle.base.css">
-    <link rel="stylesheet" href="/static/admin/dashboard/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet"
+      integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+    <!-- font-awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="/static/admin/dashboard/css/dashboard.css">
     <link rel="shortcut icon" href="/static/admin/dashboard/images/favicon.png" />
-
-    <style>
-      .content-wrapper {
-        background-color: #f5f5f5;
-      }
-      label {
-        font-weight: bold;
-      }
-    </style>
 
     {{block "css" .}}
 
@@ -29,105 +22,114 @@
 
   </head>
 
-  <body>
-    <div class="container-scroller">
-      <!-- navbar -->
-      <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
-        <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-center">
-          <button class="navbar-toggler align-self-center text-primary" type="button" data-toggle="minimize">
-            <span class="ti-menu text-primary"></span>
+  <body class="d-flex flex-column h-100">
+    <div class="container-fluid">
+      <button class="sidebar-toggle">
+        <i class="fas fa-bars"></i>
+        <span style="font-size:0.75rem;">MENU</span>
+      </button>
+
+      <a href="/logout" class="btn btn-outline-danger btn-lg logout-btn" role="button">
+        <i class="fas fa-sign-out-alt mr-2"></i>
+        Logout</a>
+
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <button class="close-btn">
+            <i class="fas fa-times"></i>
           </button>
         </div>
-        <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
-          <ul class="navbar-nav navbar-nav-right">
-            <li class="nav-item nav-profile">
-              <a class="nav-link text-primary" href="/">Public &#124; Homepage</a>
-            </li>
-            <li class="nav-item nav-profile">
-              <a class="nav-link text-dark" href="/logout">Logout</a>
-            </li>
-          </ul>
-        </div>
-      </nav>
-      <!-- navbar end -->
-      <div class="container-fluid page-body-wrapper">
-        <!-- sidebar -->
-        <nav class="sidebar sidebar-offcanvas" id="sidebar">
-          <ul class="nav">
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/dashboard">
-                <i class="ti-layout menu-icon"></i>
-                <span class="menu-title">Dashboard</span>
-              </a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" data-bs-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
-                <i class="ti-more menu-icon"></i>
-                <span class="menu-title">Reservations</span>
-                <i class="menu-arrow"></i>
-              </a>
-              <div class="collapse" id="ui-basic">
-                <ul class="nav flex-column sub-menu">
-                  <li class="nav-item"><a class="nav-link" href="/admin/reservations-new">New Reservations</a></li>
-                  <li class="nav-item"><a class="nav-link" href="/admin/reservations-all">All Reservations</a></li>
-                </ul>
-              </div>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="/admin/reservations-calendar">
-                <i class="ti-calendar menu-icon"></i>
-                <span class="menu-title">Reservations Calendar</span>
-              </a>
-            </li>
+        <!-- links -->
+        <ul class="links">
+          <li>
+            <a href="/admin/dashboard"><i class="fas fa-tachometer-alt me-2"></i>dashboard</a>
+          </li>
+          <li>
+            <a href="/"><i class="fas fa-home me-2"></i>public &#124; homepage</a>
+          </li>
+          <li>
+            <a href="/admin/reservations-calendar"><i class="fas fa-calendar-alt me-2"></i>reservations calendar</a>
+          </li>
+          <li class="dropdown">
+            <a class="dropdown-toggle" href="#" id="DropdownMenuLink" role="button" data-bs-toggle="dropdown"
+              aria-expanded="false">
+              <i class="fas fa-hotel me-2"></i>Reservations
+            </a>
+            <ul class="dropdown-menu" aria-labelledby="DropdownMenuLink">
+              <li><a class="dropdown-item" href="/admin/reservations-new"><i class="fas fa-bed me-2"></i>new reservations</a></li>
+              <li><a class="dropdown-item" href="/admin/reservations-all"><i class="fas fa-bed me-2"></i>all reservations</a></li>
+            </ul>
+          </li>
+        </ul>
+        <!-- social media -->
+        <ul class="social-icons">
+          <li>
+            <a href="#">
+              <i class="fab fa-facebook"></i>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <i class="fab fa-twitter"></i>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <i class="fab fa-behance"></i>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <i class="fab fa-linkedin"></i>
+            </a>
+          </li>
+          <li>
+            <a href="#">
+              <i class="fab fa-sketch"></i>
+            </a>
+          </li>
+        </ul>
+      </aside>
+      <!-- header -->
+      <header>
+        <div class="row">
+          <div class="col-10 offset-2">
 
-          </ul>
-        </nav>
-        <!-- sidebar end / main panel start -->
-        <div class="main-panel">
-          <div class="content-wrapper">
-            <div class="row">
-              <div class="col-md-12 grid-margin">
-                <div class="d-flex justify-content-between align-items-center">
-                  <div>
-                    <h4 class="font-weight-bold mb-0">{{block "page-title" .}} {{end}}</h4>
-                  </div>
-                  <div>
-
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row">
-              {{block "content" .}}
-
-              {{end}}
-            </div>
+            {{block "page-title" .}}
+      
+            {{end}}
 
           </div>
-          <!-- content-wrapper ends -->
-          <footer class="footer">
-            <div class="d-sm-flex justify-content-center justify-content-sm-between">
-
-            </div>
-          </footer>
         </div>
-        <!-- main-panel ends -->
-      </div>
-      <!-- page-body-wrapper ends -->
+      </header>
+      <!-- content -->
+      <main class="flex-shrink-0">
+        <div class="row mx-2">
+          <div class="col-10 offset-2 p-0">
+
+            {{block "content" .}}
+
+            {{end}}
+
+          </div>
+        </div>
+      </main>
+      <!-- footer -->
+      <footer class="fixed-bottom mt-auto py-1 bg-dark">
+        <div class="container-fluid d-flex justify-content-end">
+          <span class="text-light">StratoSOFT</span>
+        </div>
+      </footer>
+
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p"
+        crossorigin="anonymous"></script>
+      <script src="/static/admin/dashboard/js/dashboard.js"></script>
+
+      {{block "js" . }}
+      
+      {{end}}
     </div>
-    <!-- container-scroller -->
-
-    <script src="/static/admin/dashboard/vendors/base/vendor.bundle.base.js"></script>
-    <script src="/static/admin/dashboard/js/off-canvas.js"></script>
-    <script src="/static/admin/dashboard/js/hoverable-collapse.js"></script>
-    <script src="/static/admin/dashboard/js/template.js"></script>
-    <script src="/static/admin/dashboard/js/todolist.js"></script>
-    <script src="/static/admin/dashboard/js/dashboard.js"></script>
-
-    {{block "js" . }}
-
-    {{end}}
-
   </body>
 
   </html>

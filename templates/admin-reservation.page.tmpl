@@ -5,12 +5,14 @@
 {{end}}
 
 {{define "content"}}
+
   {{$rsvn := index .Data "reservation"}}
   {{$src := index .StringMap "src"}}
+
   <div class="row">
-    <div class="col-md-8 offset-md-2">
+    <div class="col-6">
       <div>
-        <ul>
+        <ul style="list-style-type: disc;">
           <li><strong>Room :</strong> {{$rsvn.Room.RoomName}}</li>
           <li><strong>Arrival Date :</strong> {{dateUK $rsvn.StartDate}}</li>
           <li><strong>Departure Date :</strong> {{dateUK $rsvn.EndDate}}</li>
@@ -29,7 +31,7 @@
           {{with .Form.Errors.GetErrMsg "first_name"}}
           <label class="text-danger">{{.}}</label>
           {{end}}
-          <input class="form-control my-2 {{with .Form.Errors.GetErrMsg " first_name"}} is-invalid {{end}}" id="first_name"
+          <input class="form-control mt-2 mb-3 {{with .Form.Errors.GetErrMsg " first_name"}} is-invalid {{end}}" id="first_name"
             autocomplete="off" type='text' name='first_name' value="{{$rsvn.FirstName}}" required>
         </div>
       
@@ -38,7 +40,7 @@
           {{with .Form.Errors.GetErrMsg "last_name"}}
           <label class="text-danger">{{.}}</label>
           {{end}}
-          <input class="form-control my-2 {{with .Form.Errors.GetErrMsg " last_name"}} is-invalid {{end}}" id="last_name"
+          <input class="form-control mt-2 mb-3 {{with .Form.Errors.GetErrMsg " last_name"}} is-invalid {{end}}" id="last_name"
             autocomplete="off" type='text' name='last_name' value="{{$rsvn.LastName}}" required>
         </div>
       
@@ -47,7 +49,7 @@
           {{with .Form.Errors.GetErrMsg "email"}}
           <label class="text-danger">{{.}}</label>
           {{end}}
-          <input class="form-control my-2 {{with .Form.Errors.GetErrMsg " email"}} is-invalid {{end}}" id="email"
+          <input class="form-control mt-2 mb-3 {{with .Form.Errors.GetErrMsg " email"}} is-invalid {{end}}" id="email"
             autocomplete="off" type='email' name='email' value="{{$rsvn.Email}}" required>
         </div>
       
@@ -56,13 +58,13 @@
           {{with .Form.Errors.GetErrMsg "phone"}}
           <label class="text-danger">{{.}}</label>
           {{end}}
-          <input class="form-control my-2 {{with .Form.Errors.GetErrMsg " phone"}} is-invalid {{end}}" id="phone"
+          <input class="form-control mt-2 mb-5 {{with .Form.Errors.GetErrMsg " phone"}} is-invalid {{end}}" id="phone"
             autocomplete="off" type='text' name='phone' value="{{$rsvn.Phone}}" required>
         </div>
       
         <hr>
       
-        <input type="submit" class="btn btn-primary" value="Save Details">
+        <input type="submit" class="btn btn-primary me-3" value="Save Details">
         <a href="/admin/reservations-{{$src}}" class="btn btn-secondary">Cancel</a>
       
       </form>

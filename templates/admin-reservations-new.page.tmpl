@@ -9,40 +9,38 @@
 {{end}}
 
 {{define "content"}}
-  <div class="row">
-    <div class="col-md-12">
-      {{$rsvn := index .Data "reservations"}}
 
-      <table id="new-reservations" class="table table-warning table-striped table-hover">
-        <thead>
-          <tr>
-            <th>Last Name</th>
-            <th>First Name</th>
-            <th>Email</th>
-            <th>Phone</th>
-            <th>Room</th>
-            <th data-type="date" data-format="DD/MM/YYYY">Arrival Date</th>
-            <th data-type="date" data-format="DD/MM/YYYY">Departure Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {{range $rsvn}}
-            <tr>
-              <td>
-                <a href="/admin/reservations/new/{{.ID}}">{{.LastName}}</a>
-              </td>
-              <td>{{.FirstName}}</td>
-              <td>{{.Email}}</td>
-              <td>{{.Phone}}</td>
-              <td>{{.Room.RoomName}}</td>
-              <td>{{dateUK .StartDate}}</td>
-              <td>{{dateUK .EndDate}}</td>
-            </tr>
-          {{end}}
-        </tbody>
-      </table>
-    </div>
-  </div>
+  {{$rsvn := index .Data "reservations"}}
+
+  <table id="new-reservations" class="table table-warning table-striped table-hover">
+    <thead>
+      <tr>
+        <th>Last Name</th>
+        <th>First Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Room</th>
+        <th data-type="date" data-format="DD/MM/YYYY">Arrival Date</th>
+        <th data-type="date" data-format="DD/MM/YYYY">Departure Date</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range $rsvn}}
+        <tr>
+          <td>
+            <a href="/admin/reservations/new/{{.ID}}">{{.LastName}}</a>
+          </td>
+          <td>{{.FirstName}}</td>
+          <td>{{.Email}}</td>
+          <td>{{.Phone}}</td>
+          <td>{{.Room.RoomName}}</td>
+          <td>{{dateUK .StartDate}}</td>
+          <td>{{dateUK .EndDate}}</td>
+        </tr>
+      {{end}}
+    </tbody>
+  </table>
+
 {{end}}
 
 {{define "js"}}
