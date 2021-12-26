@@ -50,8 +50,11 @@ func routes(app *config.AppConfig) http.Handler {
 		mux.Get("/reservations-new", handlers.Repo.AdminReservationsNew)
 		mux.Get("/reservations-all", handlers.Repo.AdminReservationsAll)
 		mux.Get("/reservations-calendar", handlers.Repo.AdminReservationsCalendar)
-		// this route can be reached via either 'all' or 'new' reservations administration pages
+		// these routes can be reached via either 'all' or 'new' reservations administration pages
+		mux.Get("/reservation-processed/{src}/{id}", handlers.Repo.AdminReservationProcess)
+		mux.Get("/reservation-deleted/{src}/{id}", handlers.Repo.AdminReservationDelete)
 		mux.Get("/reservations/{src}/{id}", handlers.Repo.AdminReservation)
+		mux.Post("/reservations/{src}/{id}", handlers.Repo.AdminPostReservation)
 	})
 
 	// creat fileserver for static content

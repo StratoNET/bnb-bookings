@@ -22,4 +22,7 @@ type DatabaseRepository interface {
 	GetAllReservations() ([]models.Reservation, error)
 	GetNewReservations() ([]models.Reservation, error)
 	GetReservationByID(id int) (models.Reservation, error)
+	UpdateReservation(admin models.Reservation) error
+	DeleteReservation(id int) error
+	UpdateReservationProcessed(id int, processed uint8) error
 }

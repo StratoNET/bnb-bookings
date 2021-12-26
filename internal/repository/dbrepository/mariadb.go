@@ -362,3 +362,55 @@ func (m *mariaDBRepository) GetReservationByID(id int) (models.Reservation, erro
 
 	return r, nil
 }
+
+// UpdateReservation updates a reservation record in the database
+func (m *mariaDBRepository) UpdateReservation(rsvn models.Reservation) error {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `UPDATE reservations SET first_name = ?, last_name = ?, email = ?, phone = ?, updated_at = ? WHERE id = ?;`
+
+	_, err := m.DB.ExecContext(ctx, query,
+		rsvn.FirstName,
+		rsvn.LastName,
+		rsvn.Email,
+		rsvn.Phone,
+		time.Now(),
+		rsvn.ID,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteReservation deletes a reservation from the database by id
+func (m *mariaDBRepository) DeleteReservation(id int) error {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, "DELETE FROM reservations WHERE id = ?;", id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// UpdateReservationProcessed updates processed level of a reservation by id
+func (m *mariaDBRepository) UpdateReservationProcessed(id int, processed uint8) error {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	_, err := m.DB.ExecContext(ctx, "UPDATE reservations SET processed = ? WHERE id = ?;", processed, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

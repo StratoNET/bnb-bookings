@@ -210,12 +210,6 @@ Sidebar
   transform: rotate(90deg);
 }
 
-.logout-btn {
-  position: fixed;
-  top: 2.375rem;
-  right: 3rem;
-}
-
 .links a {
   display: block;
   font-size: 1.125rem;

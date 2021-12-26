@@ -10,7 +10,7 @@
   {{$src := index .StringMap "src"}}
 
   <div class="row">
-    <div class="col-6">
+    <div class="col-8">
       <div>
         <ul style="list-style-type: disc;">
           <li><strong>Room :</strong> {{$rsvn.Room.RoomName}}</li>
@@ -63,11 +63,48 @@
         </div>
       
         <hr>
-      
-        <input type="submit" class="btn btn-primary me-3" value="Save Details">
-        <a href="/admin/reservations-{{$src}}" class="btn btn-secondary">Cancel</a>
-      
+
+        <div class="clearfix">
+          <div class="float-start">
+            <input type="submit" class="btn btn-primary me-2" value="Save Details">
+            <a href="/admin/reservations-{{$src}}" class="btn btn-secondary me-5">Cancel Edit</a>
+            <a href="#!" class="btn btn-primary" onclick="processReservation('{{$rsvn.ID}}')">Mark As Processed</a>
+          </div>
+          <div class="float-end">
+            <a href="#!" class="btn btn-outline-danger" onclick="deleteReservation('{{$rsvn.ID}}')">Delete Reservation</a>
+          </div>
+        </div>
+
       </form>
     </div>
   </div>
+{{end}}
+
+{{define "js"}}
+  {{$src := index .StringMap "src"}}
+  <script>
+    function processReservation(id) {
+      attention.customModal({
+        icon: 'warning',
+        msg: 'Are you sure ?',
+        callback: function(result) {
+          if (result !== false) {
+            window.location.href = "/admin/reservation-processed/{{$src}}/" + id;
+          }
+        }
+      })
+    }
+
+    function deleteReservation(id) {
+      attention.customModal({
+        icon: 'error',
+        msg: 'Are you sure ? ...(this action is permanent)',
+        callback: function (result) {
+          if (result !== false) {
+            window.location.href = "/admin/reservation-deleted/{{$src}}/" + id;
+          }
+        }
+      })
+    }
+  </script>
 {{end}}

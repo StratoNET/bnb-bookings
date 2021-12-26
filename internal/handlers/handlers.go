@@ -15,6 +15,7 @@ import (
 	"github.com/StratoNET/bnb-bookings/internal/repository"
 	"github.com/StratoNET/bnb-bookings/internal/repository/dbrepository"
 	forms "github.com/StratoNET/bnb-bookings/internal/validation"
+	"github.com/go-chi/chi/v5"
 )
 
 // Repo repository used by handlers
@@ -539,6 +540,46 @@ func (m *Repository) AdminReservationsCalendar(w http.ResponseWriter, r *http.Re
 	render.Template(w, r, "admin-reservations-cal.page.tmpl", &models.TemplateData{})
 }
 
+// AdminReservationProcessed marks the associated reservation as processed
+func (m *Repository) AdminReservationProcess(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		m.App.ErrorLog.Println(" missing URL parameter (id)")
+		return
+	}
+	src := chi.URLParam(r, "src")
+
+	err = m.DB.UpdateReservationProcessed(id, 1)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "#0019: cannot update requested reservation")
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusTemporaryRedirect)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "flash", fmt.Sprintf("Reservation (id=%d) has been marked as processed", id))
+	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+}
+
+// AdminReservationDeleted deletes the associated reservation from the database
+func (m *Repository) AdminReservationDelete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		m.App.ErrorLog.Println(" missing URL parameter (id)")
+		return
+	}
+	src := chi.URLParam(r, "src")
+
+	err = m.DB.DeleteReservation(id)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "#0020: cannot delete requested reservation")
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusTemporaryRedirect)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "flash", fmt.Sprintf("Reservation (id=%d) has been deleted", id))
+	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
+}
+
 // AdminReservation gets a single reservation by id & displays it in form layout
 func (m *Repository) AdminReservation(w http.ResponseWriter, r *http.Request) {
 	// get id from reservation link clicked, get elements exploded on '/' & convert 4th element into string
@@ -568,4 +609,46 @@ func (m *Repository) AdminReservation(w http.ResponseWriter, r *http.Request) {
 		StringMap: stringMap,
 		Form:      forms.NewForm(nil),
 	})
+}
+
+// AdminPostReservation updates a single reservation by id
+func (m *Repository) AdminPostReservation(w http.ResponseWriter, r *http.Request) {
+	// initially ensure form data is parsed correctly
+	err := r.ParseForm()
+	if err != nil {
+		m.App.ErrorLog.Println("unable to parse update reservation form")
+		return
+	}
+	// get id from reservation link clicked, get elements exploded on '/' & convert 4th element into string
+	elements := strings.Split(r.RequestURI, "/")
+	id, err := strconv.Atoi(elements[4])
+	if err != nil {
+		m.App.ErrorLog.Println(" missing URL parameter (id)")
+		return
+	}
+	stringMap := make(map[string]string)
+	src := elements[3]
+	stringMap["src"] = src
+
+	reservation, err := m.DB.GetReservationByID(id)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "#0017: cannot get requested reservation from database")
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusTemporaryRedirect)
+		return
+	}
+	// overwrite any/all of 4 possible updatable fields
+	reservation.FirstName = r.Form.Get("first_name")
+	reservation.LastName = r.Form.Get("last_name")
+	reservation.Email = r.Form.Get("email")
+	reservation.Phone = r.Form.Get("phone")
+
+	err = m.DB.UpdateReservation(reservation)
+	if err != nil {
+		m.App.Session.Put(r.Context(), "error", "#0018: cannot update reservation")
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusTemporaryRedirect)
+		return
+	}
+
+	m.App.Session.Put(r.Context(), "flash", fmt.Sprintf("Reservation (id=%d) has been updated", reservation.ID))
+	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
 }
