@@ -46,7 +46,7 @@ type Reservation struct {
 	Room      Room
 }
 
-// RoomResriction is the room restriction model (NB: LastInsertId() requires ReservationID as type int64)
+// RoomRestriction is the room restriction model (NB: LastInsertId() requires ReservationID as type int64)
 type RoomRestriction struct {
 	ID                  int
 	RoomID              int

@@ -19,10 +19,13 @@ type DatabaseRepository interface {
 	UpdateAdministrator(admin models.Administrator) error
 	AuthenticateAdministrator(email, password string) (int, string, error)
 
+	GetAllRooms() ([]models.Room, error)
+
 	GetAllReservations() ([]models.Reservation, error)
 	GetNewReservations() ([]models.Reservation, error)
 	GetReservationByID(id int) (models.Reservation, error)
 	UpdateReservation(admin models.Reservation) error
 	DeleteReservation(id int) error
 	UpdateReservationProcessed(id int, processed uint8) error
+	GetRoomRestrictionsByDate(roomID int, startDate, endDate time.Time) ([]models.RoomRestriction, error)
 }

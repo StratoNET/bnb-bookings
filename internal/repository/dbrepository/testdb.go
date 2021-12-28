@@ -102,6 +102,12 @@ func (m *testDBRepository) AuthenticateAdministrator(email, password string) (in
 	return 1, "", nil
 }
 
+// GetAllRooms returns all rooms as a slice of models.Room
+func (m *testDBRepository) GetAllRooms() ([]models.Room, error) {
+	var rooms []models.Room
+	return rooms, nil
+}
+
 // GetAllReservations returns all reservations as a slice of models.Reservation
 func (m *testDBRepository) GetAllReservations() ([]models.Reservation, error) {
 	var reservations []models.Reservation
@@ -133,4 +139,10 @@ func (m *testDBRepository) DeleteReservation(id int) error {
 // UpdateReservationProcessed updates processed level of a reservation by id
 func (m *testDBRepository) UpdateReservationProcessed(id int, processed uint8) error {
 	return nil
+}
+
+// GetRoomRestrictionsByDate returns all rooms restrictions by room id, for a date range, as a slice of models.RoomRestriction
+func (m *testDBRepository) GetRoomRestrictionsByDate(roomID int, startDate, endDate time.Time) ([]models.RoomRestriction, error) {
+	var restrictions []models.RoomRestriction
+	return restrictions, nil
 }

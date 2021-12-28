@@ -10,6 +10,7 @@ import (
 
 	"github.com/StratoNET/bnb-bookings/internal/config"
 	"github.com/StratoNET/bnb-bookings/internal/database"
+	"github.com/StratoNET/bnb-bookings/internal/helpers"
 	"github.com/StratoNET/bnb-bookings/internal/models"
 	"github.com/StratoNET/bnb-bookings/internal/render"
 	"github.com/StratoNET/bnb-bookings/internal/repository"
@@ -537,7 +538,99 @@ func (m *Repository) AdminReservationsAll(w http.ResponseWriter, r *http.Request
 
 // AdminReservationsCalendar gets the reservations displayed in calendar block format
 func (m *Repository) AdminReservationsCalendar(w http.ResponseWriter, r *http.Request) {
-	render.Template(w, r, "admin-reservations-cal.page.tmpl", &models.TemplateData{})
+	// initially assume that request URL has no added parameters i.e. no year/month specified, which is equal to now...
+	now := time.Now()
+	// ... if URL parameter are included
+	if r.URL.Query().Get("y") != "" {
+		year, _ := strconv.Atoi(r.URL.Query().Get("y"))
+		month, _ := strconv.Atoi(r.URL.Query().Get("m"))
+		// allows updating of 'now' to incorporate parameter values for next/prev(ious) dates
+		now = time.Date(year, time.Month(month), 1, 0, 0, 0, 0, time.Local)
+	}
+	// allows next/prev to be created based on +/- one month from 'now'
+	next := now.AddDate(0, 1, 0)
+	prev := now.AddDate(0, -1, 0)
+	// format for display in reservations calendar page, remembering that a month can roll from 12 to 1 (or vice-versa) if year changes
+	nextMonth := next.Format("01")
+	nextMonthYear := next.Format("2006")
+	prevMonth := prev.Format("01")
+	prevMonthYear := prev.Format("2006")
+
+	stringMap := make(map[string]string)
+	stringMap["next_month"] = nextMonth
+	stringMap["next_month_year"] = nextMonthYear
+	stringMap["prev_month"] = prevMonth
+	stringMap["prev_month_year"] = prevMonthYear
+	stringMap["this_month"] = now.Format("01")
+	stringMap["this_month_year"] = now.Format("2006")
+	stringMap["show_month"] = now.Format("January")
+
+	// need to get first & last days of each month
+	currentYear, currentMonth, _ := now.Date()
+	currentLocation := now.Location()
+	firstDayOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
+	lastDayOfMonth := firstDayOfMonth.AddDate(0, 1, -1)
+	// store number of days in month in intMap which will vary based on current result from preceding code block
+	dimIntMap := make(map[string]int)
+	dimIntMap["days_in_month"] = lastDayOfMonth.Day()
+
+	// get information for all rooms
+	rooms, err := m.DB.GetAllRooms()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	// pass all rooms data to calendar template
+	data := make(map[string]interface{})
+	data["rooms"] = rooms
+
+	// create reservation & owner blocked maps for each day of current month, for each room
+	for _, rm := range rooms {
+		reservationsMap := make(map[string]int)
+		blockedMap := make(map[string]int)
+
+		for d := firstDayOfMonth; !d.After(lastDayOfMonth); d = d.AddDate(0, 0, 1) {
+			// initialise each day in each map as 0
+			reservationsMap[d.Format("2-01-2006")] = 0
+			blockedMap[d.Format("2-01-2006")] = 0
+		}
+		// get all room restrictions for each room
+		restrictions, err := m.DB.GetRoomRestrictionsByDate(rm.ID, firstDayOfMonth, lastDayOfMonth)
+		if err != nil {
+			helpers.ServerError(w, err)
+			return
+		}
+
+		for _, rs := range restrictions {
+			if rs.ReservationID == 0 {
+				// owner blocked entries where query has substituted null with 0 for reservation_id
+				for d := rs.StartDate; !d.After(rs.EndDate); d = d.AddDate(0, 0, 1) {
+					blockedMap[d.Format("2-01-2006")] = rs.ID
+				}
+			} else {
+				// reservations
+				for d := rs.StartDate; !d.After(rs.EndDate); d = d.AddDate(0, 0, 1) {
+					reservationsMap[d.Format("2-01-2006")] = int(rs.ReservationID)
+				}
+			}
+		}
+		data[fmt.Sprintf("reservations_map_%d", rm.ID)] = reservationsMap
+		data[fmt.Sprintf("blocked_map_%d", rm.ID)] = blockedMap
+
+		m.App.Session.Put(r.Context(), fmt.Sprintf("blocked_map_%d", rm.ID), blockedMap)
+
+	}
+
+	render.Template(w, r, "admin-reservations-cal.page.tmpl", &models.TemplateData{
+		StringMap: stringMap,
+		IntMap:    dimIntMap,
+		Data:      data,
+	})
+}
+
+// AdminPostReservationsCalendar handles posting of edited data submitted from the reservations calendar
+func (m *Repository) AdminPostReservationsCalendar(w http.ResponseWriter, r *http.Request) {
+	m.App.InfoLog.Println("From calendar")
 }
 
 // AdminReservationProcessed marks the associated reservation as processed
@@ -642,6 +735,41 @@ func (m *Repository) AdminPostReservation(w http.ResponseWriter, r *http.Request
 	reservation.Email = r.Form.Get("email")
 	reservation.Phone = r.Form.Get("phone")
 
+	form := forms.NewForm(r.PostForm)
+
+	// perform all necessary validations
+
+	// form.HasField("first_name", r)
+	form.RequiredFields("first_name", "last_name", "email", "phone")
+	form.MinLength("first_name", 2)
+	form.MinLength("last_name", 2)
+	form.MinLength("phone", 6)
+	form.IsEmail("email")
+
+	if !form.ValidForm() {
+		// format start/end dates as strings (instead of time.Time) & place into a StringMap (templatedata) for re-display in make-reservation page
+		sd := reservation.StartDate.Format("02/01/2006")
+		ed := reservation.EndDate.Format("02/01/2006")
+		stringMap := make(map[string]string)
+		stringMap["start_date"] = sd
+		stringMap["end_date"] = ed
+		// also must persist 'src' to maintain URL integrity if validation fails and function is subsequently recalled
+		stringMap["src"] = src
+
+		data := make(map[string]interface{})
+		data["reservation"] = reservation
+
+		m.App.Session.Put(r.Context(), "error", "#0021: invalid form details submitted")
+
+		render.Template(w, r, "admin-reservation.page.tmpl", &models.TemplateData{
+			Form:      form,
+			Data:      data,
+			StringMap: stringMap,
+		})
+		return
+	}
+
+	// after all validation procedures are complete, update reservation record in database
 	err = m.DB.UpdateReservation(reservation)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0018: cannot update reservation")

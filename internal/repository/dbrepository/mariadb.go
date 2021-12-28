@@ -232,6 +232,45 @@ func (m *mariaDBRepository) AuthenticateAdministrator(email, password string) (i
 	return id, hPassword, nil
 }
 
+// GetAllRooms returns all rooms as a slice of models.Room
+func (m *mariaDBRepository) GetAllRooms() ([]models.Room, error) {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var rooms []models.Room
+
+	query := `SELECT * FROM rooms ORDER BY room_name ASC;`
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return rooms, err
+	}
+	// must close rows after function has executed
+	defer rows.Close()
+
+	for rows.Next() {
+		var r models.Room
+		err := rows.Scan(
+			&r.ID,
+			&r.RoomName,
+			&r.CreatedAt,
+			&r.UpdatedAt,
+		)
+
+		if err != nil {
+			return rooms, err
+		}
+		rooms = append(rooms, r)
+	}
+
+	if err = rows.Err(); err != nil {
+		return rooms, err
+	}
+
+	return rooms, nil
+}
+
 // GetAllReservations returns all reservations as a slice of models.Reservation
 func (m *mariaDBRepository) GetAllReservations() ([]models.Reservation, error) {
 	// transaction given 3 seconds to complete, after which connection will be released
@@ -413,4 +452,49 @@ func (m *mariaDBRepository) UpdateReservationProcessed(id int, processed uint8) 
 	}
 
 	return nil
+}
+
+// GetRoomRestrictionsByDate returns all rooms restrictions by room id, for a date range, as a slice of models.RoomRestriction
+func (m *mariaDBRepository) GetRoomRestrictionsByDate(roomID int, startDate, endDate time.Time) ([]models.RoomRestriction, error) {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var restrictions []models.RoomRestriction
+
+	// query uses coalesce to substitute 0 for any null value of reservation_id which GO would not allow
+	query := `SELECT id, room_id, COALESCE(reservation_id, 0), restriction_id, start_date, end_date, created_at, updated_at FROM room_restrictions 
+	WHERE room_id = ? AND ? < end_date AND ? > start_date;`
+
+	rows, err := m.DB.QueryContext(ctx, query, roomID, startDate, endDate)
+	if err != nil {
+		return restrictions, err
+	}
+	// must close rows after function has executed
+	defer rows.Close()
+
+	for rows.Next() {
+		var r models.RoomRestriction
+		err := rows.Scan(
+			&r.ID,
+			&r.RoomID,
+			&r.ReservationID,
+			&r.RestrictionID,
+			&r.StartDate,
+			&r.EndDate,
+			&r.CreatedAt,
+			&r.UpdatedAt,
+		)
+
+		if err != nil {
+			return restrictions, err
+		}
+		restrictions = append(restrictions, r)
+	}
+
+	if err = rows.Err(); err != nil {
+		return restrictions, err
+	}
+
+	return restrictions, nil
 }

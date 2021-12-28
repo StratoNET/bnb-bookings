@@ -59,6 +59,7 @@ func run_main() (*database.DB, error) {
 	gob.Register(models.Room{})
 	gob.Register(models.RoomRestriction{})
 	gob.Register(models.RestrictionCategory{})
+	gob.Register(map[string]int{})
 
 	// create application email channel
 	mailChannel := make(chan models.MailData)

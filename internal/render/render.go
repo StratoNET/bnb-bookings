@@ -17,16 +17,33 @@ import (
 
 // functions / FuncMap makes utility functions available throughout application templates
 var functions = template.FuncMap{
-	"dateUK": DateUK,
+	"add":         Add,
+	"dateUK":      DateUK,
+	"iterateDays": IterateDays,
 }
 
 var app *config.AppConfig
 
 var pathToTemplates = "./templates"
 
+// Add returns sum of 2 integers
+func Add(x, y int) int {
+	return x + y
+}
+
 // DateTimeUK returns a date & time formatted for UK
 func DateUK(t time.Time) string {
 	return t.Format("02/01/2006")
+}
+
+// IterateDays returns a []int, starting at 1 up to value of count for every 'days_in_month' stored in calendar's IntMap
+func IterateDays(count int) []int {
+	var i int
+	var days []int
+	for i = 1; i <= count; i++ {
+		days = append(days, i)
+	}
+	return days
 }
 
 // NewRenderer sets config for template package
