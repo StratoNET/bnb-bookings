@@ -498,3 +498,35 @@ func (m *mariaDBRepository) GetRoomRestrictionsByDate(roomID int, startDate, end
 
 	return restrictions, nil
 }
+
+// InsertRoomBlock inserts an owner block restriction for a given room
+func (m *mariaDBRepository) InsertRoomBlock(roomID int, startDate, endDate time.Time) error {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `INSERT INTO room_restrictions (room_id, restriction_id, start_date, end_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?);`
+
+	_, err := m.DB.ExecContext(ctx, query, roomID, 2, startDate, endDate, time.Now(), time.Now())
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteRoomBlock deletes an owner block restriction for a room by id
+func (m *mariaDBRepository) DeleteRoomBlock(id int) error {
+	// transaction given 3 seconds to complete, after which connection will be released
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `DELETE FROM room_restrictions WHERE id = ?;`
+
+	_, err := m.DB.ExecContext(ctx, query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

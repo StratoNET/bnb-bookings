@@ -8,10 +8,10 @@
 
   <div class="clearfix">
     <a class="btn btn-outline-secondary float-start" 
-    href="/admin/reservations-calendar?y={{index .StringMap "prev_month_year"}}&m={{index .StringMap "prev_month"}}">
+    href="/admin/reservations-cal?y={{index .StringMap "prev_month_year"}}&m={{index .StringMap "prev_month"}}">
     <i class="fas fa-backward"></i></a>
     <a class="btn btn-outline-secondary float-end" 
-    href="/admin/reservations-calendar?y={{index .StringMap "next_month_year"}}&m={{index .StringMap "next_month"}}">
+    href="/admin/reservations-cal?y={{index .StringMap "next_month_year"}}&m={{index .StringMap "next_month"}}">
     <i class="fas fa-forward"></i></a>
     <div class="text-center h3">
       {{index .StringMap "show_month"}} {{index .StringMap "this_month_year"}}
@@ -23,8 +23,10 @@
   {{$currentMonth := index .StringMap "this_month"}}
   {{$currentYear := index .StringMap "this_month_year"}}
 
-  <form method="post" action="/admin/reservations-calendar" novalidate>
+  <form method="post" action="/admin/reservations-cal" novalidate>
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
+    <input type="hidden" name="month" value="{{$currentMonth}}">
+    <input type="hidden" name="year" value="{{$currentYear}}">
 
     <div class="mt-5">
       {{range $rooms}}
@@ -56,11 +58,12 @@
                 {{else}}
                   <input 
                     {{if gt (index $blocked (printf "%d-%s-%s" $days $currentMonth $currentYear)) 0}}
-                      checked
                       name="remove_blocked_{{$roomID}}_{{printf "%d-%s-%s" $days $currentMonth $currentYear}}"
                       value="{{index $blocked (printf "%d-%s-%s" $days $currentMonth $currentYear)}}"
+                      checked="checked"
                     {{else}}
                       name="add_blocked_{{$roomID}}_{{printf "%d-%s-%s" $days $currentMonth $currentYear}}"
+                      value="1"
                     {{end}}
                       type="checkbox">
                 {{end}}

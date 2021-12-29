@@ -630,7 +630,70 @@ func (m *Repository) AdminReservationsCalendar(w http.ResponseWriter, r *http.Re
 
 // AdminPostReservationsCalendar handles posting of edited data submitted from the reservations calendar
 func (m *Repository) AdminPostReservationsCalendar(w http.ResponseWriter, r *http.Request) {
-	m.App.InfoLog.Println("From calendar")
+	// parse form
+	err := r.ParseForm()
+	if err != nil {
+		m.App.ErrorLog.Println(err)
+	}
+
+	month, _ := strconv.Atoi(r.Form.Get("month"))
+	year, _ := strconv.Atoi(r.Form.Get("year"))
+
+	// process owner room blocks
+
+	// get information for all rooms
+	rooms, err := m.DB.GetAllRooms()
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+
+	// get access to forms.go HasField()
+	form := forms.NewForm(r.PostForm)
+
+	// 1. handle owner blocks to be REMOVED for current month, for each room
+	for _, rm := range rooms {
+		// get blocked maps from session for given rooms / month, which contain current blocked information at point calendar was displayed.
+		// loop through entire map for each room. If there is an entry in a map which does NOT exist in posted data AND if its restriction_id
+		// is > 0, then it is a room block which needs to be removed. This is because unchecking a checkbox means that it will never be submitted
+		// within post data, which is normal behaviour. Consequently if it was previously checked in the map, it will have a value > 0 and need
+		// to be removed.
+		currentBlockedMap := m.App.Session.Get(r.Context(), fmt.Sprintf("blocked_map_%d", rm.ID)).(map[string]int)
+
+		for dated, rsID := range currentBlockedMap {
+			// ok will be false if value is NOT in the map
+			if value, ok := currentBlockedMap[dated]; ok {
+				// only concerned with values > 0 AND which are NOT in form post data (i.e. unchecked), the remainder amount to placeholders for days without /// blocks
+				if value > 0 {
+					if !form.HasField(fmt.Sprintf("remove_blocked_%d_%s", rm.ID, dated)) {
+						// delete the blocked restriction by its id
+						err := m.DB.DeleteRoomBlock(rsID)
+						if err != nil {
+							m.App.ErrorLog.Println(err)
+						}
+					}
+				}
+			}
+		}
+	}
+
+	// 2. handle owner blocks to be ADDED for current month, for each room
+	for blockedName := range r.PostForm {
+		if strings.HasPrefix(blockedName, "add_blocked") {
+			elements := strings.Split(blockedName, "_")
+			roomID, _ := strconv.Atoi(elements[2])
+			startDate, _ := time.Parse("2-01-2006", elements[3])
+			endDate := startDate
+			// insert a new owner block
+			err := m.DB.InsertRoomBlock(roomID, startDate, endDate)
+			if err != nil {
+				m.App.ErrorLog.Println(err)
+			}
+		}
+	}
+
+	m.App.Session.Put(r.Context(), "flash", "Room(s) blocked... changes saved")
+	http.Redirect(w, r, fmt.Sprintf("/admin/reservations-cal?y=%d&m=%d", year, month), http.StatusSeeOther)
 }
 
 // AdminReservationProcessed marks the associated reservation as processed

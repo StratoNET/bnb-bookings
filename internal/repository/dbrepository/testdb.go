@@ -146,3 +146,13 @@ func (m *testDBRepository) GetRoomRestrictionsByDate(roomID int, startDate, endD
 	var restrictions []models.RoomRestriction
 	return restrictions, nil
 }
+
+// InsertRoomBlock inserts an owner block restriction for a given room
+func (m *testDBRepository) InsertRoomBlock(roomID int, startDate, endDate time.Time) error {
+	return nil
+}
+
+// DeleteRoomBlock deletes an owner block restriction for a room by id
+func (m *testDBRepository) DeleteRoomBlock(id int) error {
+	return nil
+}

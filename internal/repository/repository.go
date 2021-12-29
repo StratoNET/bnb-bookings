@@ -28,4 +28,6 @@ type DatabaseRepository interface {
 	DeleteReservation(id int) error
 	UpdateReservationProcessed(id int, processed uint8) error
 	GetRoomRestrictionsByDate(roomID int, startDate, endDate time.Time) ([]models.RoomRestriction, error)
+	InsertRoomBlock(roomID int, startDate, endDate time.Time) error
+	DeleteRoomBlock(id int) error
 }

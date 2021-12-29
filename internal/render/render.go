@@ -17,7 +17,7 @@ import (
 
 // functions / FuncMap makes utility functions available throughout application templates
 var functions = template.FuncMap{
-	"add":         Add,
+	// "add":         Add,
 	"dateUK":      DateUK,
 	"iterateDays": IterateDays,
 }
@@ -26,10 +26,10 @@ var app *config.AppConfig
 
 var pathToTemplates = "./templates"
 
-// Add returns sum of 2 integers
-func Add(x, y int) int {
-	return x + y
-}
+// Add returns sum of 2 integers (currently unused)
+// func Add(x, y int) int {
+// 	return x + y
+// }
 
 // DateTimeUK returns a date & time formatted for UK
 func DateUK(t time.Time) string {
