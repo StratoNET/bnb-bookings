@@ -23,7 +23,7 @@
   {{$currentMonth := index .StringMap "this_month"}}
   {{$currentYear := index .StringMap "this_month_year"}}
 
-  <form method="post" action="/admin/reservations-cal" novalidate>
+  <form id="calendarForm" name="calendarForm" method="post" action="/admin/reservations-cal" novalidate>
     <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
     <input type="hidden" name="month" value="{{$currentMonth}}">
     <input type="hidden" name="year" value="{{$currentYear}}">
@@ -42,27 +42,28 @@
         <div class="table-responsive">
           <table class="table table-bordered table-sm mb-5">
             <tr class="table-success">
-              {{range $days := iterateDays $dim}}
+              {{range $day := iterateDays $dim}}
                 <td class="text-center">
-                  {{$days}}
+                  {{$day}}
                 </td>
               {{end}}
             </tr>
             <tr>
-              {{range $days := iterateDays $dim}}
+              {{range $day := iterateDays $dim}}
               <td class="text-center">
-                {{if gt (index $reservations (printf "%d-%s-%s" $days $currentMonth $currentYear)) 0}}
-                  <a href="/admin/reservations/cal/{{index $reservations (printf "%d-%s-%s" $days $currentMonth $currentYear)}}">
+                {{if gt (index $reservations (printf "%d-%s-%s" $day $currentMonth $currentYear)) 0}}
+                  <a href="/admin/reservations/cal/{{index $reservations (printf "%d-%s-%s" $day $currentMonth $currentYear)}}">
                     <span class="fw-bold text-danger">R</span>
                   </a>
                 {{else}}
-                  <input 
-                    {{if gt (index $blocked (printf "%d-%s-%s" $days $currentMonth $currentYear)) 0}}
-                      name="remove_blocked_{{$roomID}}_{{printf "%d-%s-%s" $days $currentMonth $currentYear}}"
-                      value="{{index $blocked (printf "%d-%s-%s" $days $currentMonth $currentYear)}}"
+                  <input onclick="blockDayRange('{{$roomID}}', '{{$day}}', '{{$currentMonth}}', '{{$currentYear}}')" 
+                    {{if gt (index $blocked (printf "%d-%s-%s" $day $currentMonth $currentYear)) 0}}
+                      name="remove_blocked_{{$roomID}}_{{printf "%d-%s-%s" $day $currentMonth $currentYear}}"
+                      value="{{index $blocked (printf "%d-%s-%s" $day $currentMonth $currentYear)}}"
                       checked="checked"
                     {{else}}
-                      name="add_blocked_{{$roomID}}_{{printf "%d-%s-%s" $days $currentMonth $currentYear}}"
+                      id="add_blocked_{{$roomID}}_{{printf "%d-%s-%s" $day $currentMonth $currentYear}}"
+                      name="add_blocked_{{$roomID}}_{{printf "%d-%s-%s" $day $currentMonth $currentYear}}"
                       value="1"
                     {{end}}
                       type="checkbox">
@@ -77,8 +78,43 @@
 
     <hr>
 
-    <input type="submit" class="btn btn-primary" value="Save Changes">
+    <input id="btnSave" name="btnSave" type="submit" class="btn btn-primary" value="Save Changes" disabled>
 
   </form>
 
+{{end}}
+
+{{define "js"}}
+  {{$dim := index .IntMap "days_in_month"}}
+  <script>
+    function blockDayRange(roomID, day, currentMonth, currentYear) {
+      let checkbox = document.getElementById("add_blocked_" + roomID + "_" + day + "-" + currentMonth + "-" + currentYear);
+      if (checkbox != null) {
+        if (checkbox.checked) {
+          attention.blockModal({
+            icon: 'question',
+            msg: '<strong>How many days to block ?</strong>',
+            input: 'range',
+            inputLabel: '(drag slider to select)',
+            inputAttributes: {
+              min: 1,
+              max: '{{$dim}}',
+              step: 1
+            },
+            inputValue: 1,
+            callback: function (result) {
+              if (result !== false) {
+                let input = document.createElement("input");
+                input.type = 'hidden';
+                input.name = 'blocks';
+                input.value = result;
+                document.getElementById("calendarForm").appendChild(input);
+              }
+            }
+          })
+        }
+      }
+      document.getElementById("btnSave").removeAttribute("disabled");
+    }
+  </script>
 {{end}}

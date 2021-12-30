@@ -262,7 +262,6 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 
 	// perform all necessary validations
 
-	// form.HasField("first_name", r)
 	form.RequiredFields("first_name", "last_name", "email", "phone")
 	form.MinLength("first_name", 2)
 	form.MinLength("last_name", 2)
@@ -638,6 +637,7 @@ func (m *Repository) AdminPostReservationsCalendar(w http.ResponseWriter, r *htt
 
 	month, _ := strconv.Atoi(r.Form.Get("month"))
 	year, _ := strconv.Atoi(r.Form.Get("year"))
+	blocks, _ := strconv.Atoi(r.Form.Get("blocks"))
 
 	// process owner room blocks
 
@@ -683,7 +683,7 @@ func (m *Repository) AdminPostReservationsCalendar(w http.ResponseWriter, r *htt
 			elements := strings.Split(blockedName, "_")
 			roomID, _ := strconv.Atoi(elements[2])
 			startDate, _ := time.Parse("2-01-2006", elements[3])
-			endDate := startDate
+			endDate := startDate.AddDate(0, 0, (blocks - 1))
 			// insert a new owner block
 			err := m.DB.InsertRoomBlock(roomID, startDate, endDate)
 			if err != nil {

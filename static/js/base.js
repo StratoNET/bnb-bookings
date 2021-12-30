@@ -210,6 +210,62 @@ function Inform() {
 
   }
 
+  async function blockModal(params) {
+    const {
+      title = "",
+      icon = "",
+      msg = "",
+      input = "",
+      inputLabel = "",
+      inputAttributes: {min: $min, max: $max, step: $step},
+      inputValue: $inputValue,
+      showConfirmButton = true,
+    } = params;
+
+    const {value: result} = await Swal.fire({
+      title: title,
+      icon: icon,
+      html: msg,
+      input: input,
+      inputLabel: inputLabel,
+      inputAttributes: {min: $min, max: $max, step: $step},
+      inputValue: $inputValue,
+      backdrop: false,
+      focusConfirm: false,
+      showConfirmButton: showConfirmButton,
+      showCancelButton: true,
+      willOpen: () => {
+        if (params.willOpen !== undefined) {
+          params.willOpen();
+        }
+      },
+      didOpen: () => {
+        if (params.didOpen !== undefined) {
+          params.didOpen();
+        }
+      },
+      preConfirm: () => {
+        if (params.preConfirm !== undefined) {
+          params.preConfirm();
+        }
+      }
+    })
+
+    if (result) {
+      if (result.dismiss !== Swal.DismissReason.cancel) {
+        if (result.value !== "") {
+          if (params.callback !== undefined) {
+            params.callback(result);
+          }
+        } else {
+          params.callback(false);
+        }
+      } else {
+        params.callback(false);
+      }
+    }
+  }
+
   async function customModal(params) {
     const {
       title = "",
@@ -265,6 +321,7 @@ function Inform() {
     error: error,
     info: info,
     question: question,
+    blockModal: blockModal,
     customModal: customModal
   }
 }
