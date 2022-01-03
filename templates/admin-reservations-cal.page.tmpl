@@ -52,7 +52,7 @@
               {{range $day := iterateDays $dim}}
               <td class="text-center">
                 {{if gt (index $reservations (printf "%d-%s-%s" $day $currentMonth $currentYear)) 0}}
-                  <a href="/admin/reservations/cal/{{index $reservations (printf "%d-%s-%s" $day $currentMonth $currentYear)}}">
+                  <a href="/admin/reservations/cal/{{index $reservations (printf "%d-%s-%s" $day $currentMonth $currentYear)}}/page?y={{$currentYear}}&m={{$currentMonth}}">
                     <span class="fw-bold text-danger">R</span>
                   </a>
                 {{else}}
@@ -60,7 +60,7 @@
                     {{if gt (index $blocked (printf "%d-%s-%s" $day $currentMonth $currentYear)) 0}}
                       name="remove_blocked_{{$roomID}}_{{printf "%d-%s-%s" $day $currentMonth $currentYear}}"
                       value="{{index $blocked (printf "%d-%s-%s" $day $currentMonth $currentYear)}}"
-                      checked="checked"
+                      checked
                     {{else}}
                       id="add_blocked_{{$roomID}}_{{printf "%d-%s-%s" $day $currentMonth $currentYear}}"
                       name="add_blocked_{{$roomID}}_{{printf "%d-%s-%s" $day $currentMonth $currentYear}}"
@@ -88,20 +88,27 @@
   {{$dim := index .IntMap "days_in_month"}}
   <script>
     function blockDayRange(roomID, day, currentMonth, currentYear) {
-      let checkbox = document.getElementById("add_blocked_" + roomID + "_" + day + "-" + currentMonth + "-" + currentYear);
-      if (checkbox != null) {
-        if (checkbox.checked) {
-          attention.blockModal({
+      let startBlockCheckbox = document.getElementById("add_blocked_" + roomID + "_" + day + "-" + currentMonth + "-" + currentYear);
+      if (startBlockCheckbox != null) {
+        if (startBlockCheckbox.checked) {
+          attention.customModal({
+            title: '<div style="color:#dc143c;">How many days to block ?</div>',
             icon: 'question',
-            msg: '<strong>How many days to block ?</strong>',
+            msg: `<div style="font-size:small;text-align:left;"><strong>PLEASE NOTE...</strong><br>1. Owner room blocks do NOT override existing reservations. Reservations<br>have priority and should be managed accordingly BEFORE owner blocking.<br>2. Owner blocks are stored as ranges of days NOT individual days.<br>To edit a range, delete that range first, then add new ranges as required.</div>`,
             input: 'range',
             inputLabel: '(drag slider to select)',
             inputAttributes: {
               min: 1,
-              max: '{{$dim}}',
+              max: '{{$dim}}' - (Number(day) - 1),
               step: 1
             },
             inputValue: 1,
+            customClass: {
+              sender: "blockDayRange()",
+              content: startBlockCheckbox
+            },
+            confirmButtonText: "Continue ?",
+            confirmButtonColor: "#0d6efd",
             callback: function (result) {
               if (result !== false) {
                 let input = document.createElement("input");
@@ -109,12 +116,14 @@
                 input.name = 'blocks';
                 input.value = result;
                 document.getElementById("calendarForm").appendChild(input);
+                document.getElementById("btnSave").removeAttribute("disabled");
               }
             }
-          })
+          });
         }
+      } else if (startBlockCheckbox == null) {
+        document.getElementById("btnSave").removeAttribute("disabled");
       }
-      document.getElementById("btnSave").removeAttribute("disabled");
     }
   </script>
 {{end}}

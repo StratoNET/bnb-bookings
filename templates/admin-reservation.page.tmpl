@@ -25,7 +25,9 @@
       
       <form method="post" action="/admin/reservations/{{$src}}/{{$rsvn.ID}}" class="_needs-validation" novalidate>
         <input type="hidden" name="csrf_token" value="{{.CSRFToken}}">
-      
+        <input type="hidden" name="y" value="{{index .StringMap "year"}}">
+        <input type="hidden" name="m" value="{{index .StringMap "month"}}">
+
         <div class="form-group mt-5">
           <label for="first_name">First Name :</label>
           {{with .Form.Errors.GetErrMsg "first_name"}}
@@ -88,14 +90,19 @@
 
 {{define "js"}}
   {{$src := index .StringMap "src"}}
+  {{$year := index .StringMap "year"}}
+  {{$month := index .StringMap "month"}}
   <script>
     function processReservation(id) {
       attention.customModal({
         icon: 'warning',
         msg: 'Are you sure ?',
+        inputAttributes: {},
+        customClass: {},
+        confirmButtonColor: "#0d6efd",
         callback: function(result) {
           if (result !== false) {
-            window.location.href = "/admin/reservation-processed/{{$src}}/" + id;
+            window.location.href = "/admin/reservation-processed/{{$src}}/" + id + "/page?y={{$year}}&m={{$month}}";
           }
         }
       })
@@ -105,9 +112,12 @@
       attention.customModal({
         icon: 'error',
         msg: 'Are you sure ? ...(this action is permanent)',
+        inputAttributes: {},
+        customClass: {},
+        confirmButtonColor: "#0d6efd",
         callback: function (result) {
           if (result !== false) {
-            window.location.href = "/admin/reservation-deleted/{{$src}}/" + id;
+            window.location.href = "/admin/reservation-deleted/{{$src}}/" + id + "/page?y={{$year}}&m={{$month}}";
           }
         }
       })

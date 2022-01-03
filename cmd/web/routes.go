@@ -52,9 +52,9 @@ func routes(app *config.AppConfig) http.Handler {
 		mux.Get("/reservations-cal", handlers.Repo.AdminReservationsCalendar)
 		mux.Post("/reservations-cal", handlers.Repo.AdminPostReservationsCalendar)
 		// these routes can be reached via either 'all' or 'new' reservations administration pages
-		mux.Get("/reservation-processed/{src}/{id}", handlers.Repo.AdminReservationProcess)
-		mux.Get("/reservation-deleted/{src}/{id}", handlers.Repo.AdminReservationDelete)
-		mux.Get("/reservations/{src}/{id}", handlers.Repo.AdminReservation)
+		mux.Get("/reservation-processed/{src}/{id}/page", handlers.Repo.AdminReservationProcess)
+		mux.Get("/reservation-deleted/{src}/{id}/page", handlers.Repo.AdminReservationDelete)
+		mux.Get("/reservations/{src}/{id}/page", handlers.Repo.AdminReservation)
 		mux.Post("/reservations/{src}/{id}", handlers.Repo.AdminPostReservation)
 	})
 

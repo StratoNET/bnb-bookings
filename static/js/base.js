@@ -37,6 +37,9 @@ function modalReservation(CSRF, roomID) {
     attention.customModal({
       title: 'Choose your dates',
       msg: modal_html,
+      inputAttributes: {},
+      customClass: {},
+      confirmButtonColor: "#0d6efd",
       willOpen: () => {
         const rdm = document.getElementById("reservation-dates-modal");
         const rp = new DateRangePicker(rdm, {
@@ -74,6 +77,8 @@ function modalReservation(CSRF, roomID) {
               icon: "success",
               msg: '<p><a href="/reserve-room?id=' + data.room_id + '&sd=' + data.start_date + '&ed=' + data.end_date + '"' +
                 ' class="btn btn-primary mt-4">Reserve Now !</a></p>',
+              inputAttributes: {},
+              customClass: {},
               showConfirmButton: false,
             })
           } else {
@@ -210,7 +215,7 @@ function Inform() {
 
   }
 
-  async function blockModal(params) {
+  async function customModal(params) {
     const {
       title = "",
       icon = "",
@@ -219,6 +224,9 @@ function Inform() {
       inputLabel = "",
       inputAttributes: {min: $min, max: $max, step: $step},
       inputValue: $inputValue,
+      customClass: {sender: sender, content: htmlString},
+      confirmButtonText = "OK",
+      confirmButtonColor = "",
       showConfirmButton = true,
     } = params;
 
@@ -230,8 +238,11 @@ function Inform() {
       inputLabel: inputLabel,
       inputAttributes: {min: $min, max: $max, step: $step},
       inputValue: $inputValue,
+      customClass: {sender: sender, content: htmlString},
       backdrop: false,
       focusConfirm: false,
+      confirmButtonText: confirmButtonText,
+      confirmButtonColor: confirmButtonColor,
       showConfirmButton: showConfirmButton,
       showCancelButton: true,
       willOpen: () => {
@@ -250,6 +261,16 @@ function Inform() {
         }
       }
     })
+    .then((result) => {
+      if (result.dismiss === Swal.DismissReason.cancel) {
+        // specific cancel action for blockDayRange() unchecking already checked status
+        if (sender === 'blockDayRange()') {
+          cbx = htmlString;
+          cbx.checked = false;
+        }
+      }
+      return result;
+    });
 
     if (result) {
       if (result.dismiss !== Swal.DismissReason.cancel) {
@@ -264,54 +285,7 @@ function Inform() {
         params.callback(false);
       }
     }
-  }
 
-  async function customModal(params) {
-    const {
-      title = "",
-      icon = "",
-      msg = "",
-      showConfirmButton = true,
-    } = params;
-
-    const {value: result} = await Swal.fire({
-      title: title,
-      icon: icon,
-      html: msg,
-      backdrop: false,
-      focusConfirm: false,
-      showConfirmButton: showConfirmButton,
-      showCancelButton: true,
-      willOpen: () => {
-        if (params.willOpen !== undefined) {
-          params.willOpen();
-        }
-      },
-      didOpen: () => {
-        if (params.didOpen !== undefined) {
-          params.didOpen();
-        }
-      },
-      preConfirm: () => {
-        if (params.preConfirm !== undefined) {
-          params.preConfirm();
-        }
-      }
-    })
-
-    if (result) {
-      if (result.dismiss !== Swal.DismissReason.cancel) {
-        if (result.value !== "") {
-          if (params.callback !== undefined) {
-            params.callback(result);
-          }
-        } else {
-          params.callback(false);
-        }
-      } else {
-        params.callback(false);
-      }
-    }
   }
 
   return {
@@ -321,7 +295,6 @@ function Inform() {
     error: error,
     info: info,
     question: question,
-    blockModal: blockModal,
     customModal: customModal
   }
 }
