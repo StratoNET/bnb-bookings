@@ -12,6 +12,22 @@
   }
 }
 
+@font-face {
+  font-family: "OpenSans-ExtraBoldItalic";
+  src: url("../webfonts/OpenSans-ExtraBoldItalic.eot");
+  src: url("../webfonts/OpenSans-ExtraBoldItalic.woff") format("woff"),
+    url("../webfonts/OpenSans-ExtraBoldItalic.ttf") format("truetype"),
+    url("../webfonts/OpenSans-ExtraBoldItalic.svg") format("svg");
+}
+
+.logo-font {
+  font-family: "OpenSans-ExtraBoldItalic";
+}
+
+a {
+  text-decoration: none;
+}
+
 main > .container {
   padding: 60px 15px 0;
 }

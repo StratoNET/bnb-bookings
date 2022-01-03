@@ -12,6 +12,8 @@
       integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
     <link href="https://cdn.jsdelivr.net/npm/vanillajs-datepicker@1.1.4/dist/css/datepicker-bs4.min.css" rel="stylesheet">
     <link href="https://unpkg.com/notie/dist/notie.min.css" rel="stylesheet">
+    <!-- font-awesome -->
+    <link rel="stylesheet" href="/static/css/fa-all(5-15-4).css">
     <link href="/static/css/base.css" rel="stylesheet">
 
     {{block "css" .}}
@@ -28,16 +30,13 @@
       <!-- fixed navbar -->
       <nav id="navbar" class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
         <div class="container-fluid">
-          <span class="navbar-brand mb-1 text-success">Eden House</span>
+          <a class="navbar-brand mb-1 text-success" href="/"><i class="fas fa-home me-2"></i>Eden House</a>
           <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse"
             aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
           </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav me-auto mb-2 mb-md-0">
-              <li class="nav-item">
-                <a class="nav-link active" aria-current="page" href="/">Home</a>
-              </li>
               <li class="nav-item">
                 <a class="nav-link" href="/about">About</a>
               </li>
@@ -93,9 +92,15 @@
 
     </main>
 
-    <footer class="fixed-bottom mt-auto py-3 bg-dark">
-      <div class="container-fluid">
-        <span class="text-light">Remote IP &#8212; {{.RemoteIP}}</span>
+    <footer class="fixed-bottom mt-auto py-1 bg-dark">
+      <div class="container-fluid clearfix">
+        <div class="float-end">
+          <i class="far fa-copyright text-light"></i>
+          <a class="logo-font text-light mx-2" href="https://stratosoft.com" target="stratosoft"
+            title="StratoSOFT (opens in a new browser tab)">StratoSOFT</a>
+          <span class="text-success">Web Development</span>
+          <span id="year" class="text-light ms-1"></span>
+        </div>
       </div>
     </footer>
 
@@ -110,6 +115,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- common javascript for notie / sweetalert2 -->
     <script src="/static/js/base.js"></script>
+
+    <script>document.getElementById("year").innerHTML = new Date().getFullYear();</script>
 
     <!-- setup message types using notie via notify() -->
     {{with .Flash}}
