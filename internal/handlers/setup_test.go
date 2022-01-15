@@ -23,11 +23,19 @@ import (
 var app config.AppConfig
 var session *scs.SessionManager
 var pathToTemplates = "./../../templates"
-var functions = template.FuncMap{}
+var functions = template.FuncMap{
+	"dateUK":      render.DateUK,
+	"iterateDays": render.IterateDays,
+}
 
 func TestMain(m *testing.M) {
 	// session needs to be informed for storage of complex types, in this case...
+	gob.Register(models.Administrator{})
 	gob.Register(models.Reservation{})
+	gob.Register(models.Room{})
+	gob.Register(models.RoomRestriction{})
+	gob.Register(models.RestrictionCategory{})
+	gob.Register(map[string]int{})
 
 	// set development / production mode
 	app.ProductionMode = false
@@ -103,6 +111,21 @@ func getRoutes() http.Handler {
 	mux.Get("/reservation-summary", Repo.ReservationSummary)
 
 	mux.Get("/contact", Repo.Contact)
+
+	mux.Get("/login", Repo.Login)
+	mux.Get("/logout", Repo.Logout)
+	mux.Post("/login", Repo.PostLogin)
+
+	mux.Get("/admin/dashboard", Repo.AdminDashboard)
+	mux.Get("/admin/reservations-new", Repo.AdminReservationsNew)
+	mux.Get("/admin/reservations-all", Repo.AdminReservationsAll)
+	mux.Get("/admin/reservations-cal", Repo.AdminReservationsCalendar)
+	mux.Post("/admin/reservations-cal", Repo.AdminPostReservationsCalendar)
+	// these routes can be reached via either 'all' or 'new' reservations administration pages
+	mux.Get("/admin/reservation-processed/{src}/{id}/page", Repo.AdminReservationProcess)
+	mux.Get("/admin/reservation-deleted/{src}/{id}/page", Repo.AdminReservationDelete)
+	mux.Get("/admin/reservations/{src}/{id}/page", Repo.AdminReservation)
+	mux.Post("/admin/reservations/{src}/{id}", Repo.AdminPostReservation)
 
 	// creat fileserver for static content
 	staticFileServer := http.FileServer(http.Dir("./static/"))

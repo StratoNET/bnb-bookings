@@ -36,6 +36,14 @@ var theTests = []struct {
 	{"make-reservation", "/make-reservation", "GET", http.StatusOK},
 	{"reservation-summary", "/reservation-summary", "GET", http.StatusOK},
 	{"contact", "/contact", "GET", http.StatusOK},
+	{"not-found", "/non/existent/route", "GET", http.StatusNotFound},
+	{"login", "/login", "GET", http.StatusOK},
+	{"logout", "/logout", "GET", http.StatusOK},
+	{"dashboard", "/admin/dashboard", "GET", http.StatusOK},
+	{"new reservations", "/admin/reservations-new", "GET", http.StatusOK},
+	{"all reservations", "/admin/reservations-all", "GET", http.StatusOK},
+	{"reservations calendar", "/admin/reservations-cal", "GET", http.StatusOK},
+	{"show reservation page", "/admin/reservations/new/1/page", "GET", http.StatusOK},
 
 	// // all POST tests & use session
 	// {"POST-search-availability", "/search-availability", "POST", []postData{
@@ -737,6 +745,81 @@ func TestRepository_ReserveRoom(t *testing.T) {
 
 	if rr.Code != http.StatusTemporaryRedirect {
 		t.Errorf("ReserveRoom handler (ROOM NAME MISSING) returned code: %d, expected code: %d", rr.Code, http.StatusTemporaryRedirect)
+	}
+}
+
+// =============================================== USING TABLE TESTS FROM HERE ON ======================================================
+
+var loginTests = []struct {
+	name, email, expectedHTML, expectedLocation string
+	expectedStatusCode                          int
+}{
+	{
+		"valid-credentials",
+		"peter@barrett.com",
+		"",
+		"/",
+		http.StatusSeeOther,
+	},
+	{
+		"invalid-credentials",
+		"fred@bloggs.com",
+		"",
+		"/login",
+		http.StatusSeeOther,
+	},
+	{
+		"invalid-data-supplied",
+		// in this case an invaild email
+		"useless#rubbish.com",
+		// this HTML extract will always be returned from login page in response body
+		`action="/login"`,
+		// no location is involved i.e. no redirect, just a straightforward render (200)
+		"",
+		http.StatusOK,
+	},
+}
+
+func TestRepository_PostLogin(t *testing.T) {
+	// range through all tests
+	for _, v := range loginTests {
+		postedData := url.Values{}
+		postedData.Add("email", v.email)
+		postedData.Add("password", "password")
+
+		// initialise request & context, incorporate & encode data in post body
+		req, _ := http.NewRequest("POST", "/login", strings.NewReader(postedData.Encode()))
+		ctx := getCtx(req)
+		req = req.WithContext(ctx)
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		// initialise 'fake' response writer
+		rr := httptest.NewRecorder()
+
+		handler := http.HandlerFunc(Repo.PostLogin)
+
+		handler.ServeHTTP(rr, req)
+
+		if rr.Code != v.expectedStatusCode {
+			t.Errorf("PostLogin handler (%s) returned code: %d, expected code: %d", v.name, rr.Code, v.expectedStatusCode)
+		}
+
+		// test expected location
+		if v.expectedLocation != "" {
+			// get actual URL from test
+			actualLoc, _ := rr.Result().Location()
+			if actualLoc.String() != v.expectedLocation {
+				t.Errorf("PostLogin handler (%s) returned location: %s, expected location: %s", v.name, actualLoc.String(), v.expectedLocation)
+			}
+		}
+
+		// test expected HTML values
+		if v.expectedHTML != "" {
+			// read response body into string to get HTML
+			html := rr.Body.String()
+			if !strings.Contains(html, v.expectedHTML) {
+				t.Errorf("PostLogin handler (%s) returned HTML: %s, expected HTML: %s", v.name, html, v.expectedHTML)
+			}
+		}
 	}
 }
 

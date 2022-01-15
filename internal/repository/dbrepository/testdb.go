@@ -99,7 +99,12 @@ func (m *testDBRepository) UpdateAdministrator(admin models.Administrator) error
 
 // AuthenticateAdministrator does exactly that
 func (m *testDBRepository) AuthenticateAdministrator(email, password string) (int, string, error) {
-	return 1, "", nil
+	// a test authenticated administrator
+	if email == "peter@barrett.com" {
+		return 1, "", nil
+	}
+	// otherwise
+	return 0, "", errors.New("Unauthenticated Administrator: " + email)
 }
 
 // GetAllRooms returns all rooms as a slice of models.Room
