@@ -2,9 +2,11 @@ package main
 
 import (
 	"encoding/gob"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/StratoNET/bnb-bookings/internal/config"
@@ -14,6 +16,7 @@ import (
 	"github.com/StratoNET/bnb-bookings/internal/models"
 	"github.com/StratoNET/bnb-bookings/internal/render"
 	"github.com/alexedwards/scs/v2"
+	"github.com/joho/godotenv"
 )
 
 const portNumber = ":8080"
@@ -22,6 +25,8 @@ var app config.AppConfig
 var session *scs.SessionManager
 var infoLog *log.Logger
 var errorLog *log.Logger
+
+// var dbSsl bool
 
 // main is the main application function
 func main() {
@@ -61,12 +66,24 @@ func run_main() (*database.DB, error) {
 	gob.Register(models.RestrictionCategory{})
 	gob.Register(map[string]int{})
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	// get environment settings
+	dbUser := os.Getenv("DB_USER")
+	// dbPass := os.Getenv("DB_PASS")
+	dbHost := os.Getenv("DB_HOST")
+	dbPort := os.Getenv("DB_PORT")
+	dbName := os.Getenv("DB_NAME")
+	// dbSsl, _ = strconv.ParseBool(os.Getenv("DB_SSL"))
+
 	// create application email channel
 	mailChannel := make(chan models.MailData)
 	app.MailChannel = mailChannel
 
 	// set development / production mode
-	app.ProductionMode = false
+	app.ProductionMode, _ = strconv.ParseBool(os.Getenv("PRODUCTION_MODE"))
 
 	// create InfoLog & ErrorLog, making them available throughout application via config
 	infoLog = log.New(os.Stdout, "\033[36;1mINFO\033[0;0m\t", log.Ldate|log.Ltime)
@@ -83,9 +100,11 @@ func run_main() (*database.DB, error) {
 	// apply session parameters throughout application
 	app.Session = session
 
-	// connect to database (parseTime parameter allows for parsing MySQL []uint8 timestamps as Go *time.Time type)
 	infoLog.Println("Connecting to database...")
-	db, err := database.ConnectSQL("root:@tcp(localhost:3306)/bnb-bookings?parseTime=true")
+	// original connection string = "root:@tcp(localhost:3306)/bnb-bookings?parseTime=true"
+	// connect to database (parseTime parameter allows for parsing MySQL []uint8 timestamps as Go *time.Time type)
+	connectionString := fmt.Sprintf("%s:@tcp(%s:%s)/%s?parseTime=true", dbUser, dbHost, dbPort, dbName)
+	db, err := database.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to database ! ... terminating...")
 	}
@@ -98,7 +117,7 @@ func run_main() (*database.DB, error) {
 	}
 
 	app.TemplateCache = tc
-	app.UseCache = false
+	app.UseCache, _ = strconv.ParseBool(os.Getenv("USE_CACHE"))
 
 	repo := handlers.NewRepository(&app, db)
 	handlers.NewHandlers(repo)

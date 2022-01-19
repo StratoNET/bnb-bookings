@@ -15,3 +15,5 @@ require github.com/go-sql-driver/mysql v1.6.0
 require github.com/xhit/go-simple-mail/v2 v2.10.0
 
 require golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3
+
+require github.com/joho/godotenv v1.4.0
