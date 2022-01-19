@@ -72,7 +72,7 @@ func run_main() (*database.DB, error) {
 	}
 	// get environment settings
 	dbUser := os.Getenv("DB_USER")
-	// dbPass := os.Getenv("DB_PASS")
+	dbPass := os.Getenv("DB_PASS")
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
@@ -103,7 +103,7 @@ func run_main() (*database.DB, error) {
 	infoLog.Println("Connecting to database...")
 	// original connection string = "root:@tcp(localhost:3306)/bnb-bookings?parseTime=true"
 	// connect to database (parseTime parameter allows for parsing MySQL []uint8 timestamps as Go *time.Time type)
-	connectionString := fmt.Sprintf("%s:@tcp(%s:%s)/%s?parseTime=true", dbUser, dbHost, dbPort, dbName)
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true", dbUser, dbPass, dbHost, dbPort, dbName)
 	db, err := database.ConnectSQL(connectionString)
 	if err != nil {
 		log.Fatal("Cannot connect to database ! ... terminating...")
