@@ -102,9 +102,10 @@ func (m *testDBRepository) AuthenticateAdministrator(email, password string) (in
 	// a test authenticated administrator
 	if email == "peter@barrett.com" {
 		return 1, "", nil
+	} else {
+		// otherwise
+		return 0, "", errors.New("Unauthenticated Administrator: (" + email + ") test OK")
 	}
-	// otherwise
-	return 0, "", errors.New("Unauthenticated Administrator: " + email)
 }
 
 // GetAllRooms returns all rooms as a slice of models.Room
@@ -128,12 +129,20 @@ func (m *testDBRepository) GetNewReservations() ([]models.Reservation, error) {
 // GetReservationByID returns only one reservation as a models.Reservation
 func (m *testDBRepository) GetReservationByID(id int) (models.Reservation, error) {
 	var r models.Reservation
-	return r, nil
+	if id == 0 {
+		return r, errors.New("non-existent reservation: test OK")
+	} else {
+		return r, nil
+	}
 }
 
 // UpdateReservation updates a reservation record in the database
 func (m *testDBRepository) UpdateReservation(admin models.Reservation) error {
-	return nil
+	if admin.FirstName == "Bonzo" {
+		return errors.New("cannot update non-existent reservation: test OK")
+	} else {
+		return nil
+	}
 }
 
 // DeleteReservation deletes a reservation from the database by id
@@ -149,6 +158,24 @@ func (m *testDBRepository) UpdateReservationProcessed(id int, processed uint8) e
 // GetRoomRestrictionsByDate returns all rooms restrictions by room id, for a date range, as a slice of models.RoomRestriction
 func (m *testDBRepository) GetRoomRestrictionsByDate(roomID int, startDate, endDate time.Time) ([]models.RoomRestriction, error) {
 	var restrictions []models.RoomRestriction
+	// add a block
+	restrictions = append(restrictions, models.RoomRestriction{
+		ID:            1,
+		StartDate:     time.Now(),
+		EndDate:       time.Now().AddDate(0, 0, 1),
+		RoomID:        1,
+		ReservationID: 0,
+		RestrictionID: 2,
+	})
+	// add a reservation
+	restrictions = append(restrictions, models.RoomRestriction{
+		ID:            2,
+		StartDate:     time.Now().AddDate(0, 0, 2),
+		EndDate:       time.Now().AddDate(0, 0, 3),
+		RoomID:        1,
+		ReservationID: 1,
+		RestrictionID: 1,
+	})
 	return restrictions, nil
 }
 

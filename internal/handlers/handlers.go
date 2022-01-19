@@ -80,7 +80,7 @@ func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0003: cannot parse search availability, all rooms, form")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -92,20 +92,20 @@ func (m *Repository) PostAvailability(w http.ResponseWriter, r *http.Request) {
 	startDate, err := time.Parse(layout, start)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "unable to parse START DATE")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	endDate, err := time.Parse(layout, end)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "unable to parse END DATE")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
 	rooms, err := m.DB.SearchAvailabilityForAllRooms(startDate, endDate)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "unable to get AVAILABILITY FOR ALL ROOMS")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -201,7 +201,7 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
 		m.App.Session.Put(r.Context(), "error", "#0001: cannot get reservation dates & room number from session")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -209,7 +209,7 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 	room, err := m.DB.GetRoomByID(reservation.RoomID)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0002: cannot get room number from database")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	reservation.Room.RoomName = room.RoomName
@@ -241,7 +241,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
 		m.App.Session.Put(r.Context(), "error", "#0004: cannot get reservation dates, room number & room name from session")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -249,7 +249,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0005: cannot parse reservation form")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -293,7 +293,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	lastReservationID, err := m.DB.InsertReservation(reservation)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0007: cannot insert reservation into database")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -309,7 +309,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	err = m.DB.InsertRoomRestriction(room_restriction)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0008: cannot insert 'room restriction', corresponding to current reservation, into database")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -354,7 +354,7 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
 		m.App.Session.Put(r.Context(), "error", "There are no reservation details available to display")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -385,14 +385,14 @@ func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
 	roomID, err := strconv.Atoi(elements[2])
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0009: missing URL parameter (id)")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	// update the reservation data (currently stored with only start/end dates in session), with the required room id
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
 		m.App.Session.Put(r.Context(), "error", "#0010: unable to retrieve reservation from session")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 	// add roomID to reservation model, put it back into the session & redirect to make-reservation page
@@ -427,7 +427,7 @@ func (m *Repository) ReserveRoom(w http.ResponseWriter, r *http.Request) {
 	room, err := m.DB.GetRoomByID(roomID)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0012: cannot get room name from database")
-		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
@@ -506,7 +506,7 @@ func (m *Repository) AdminReservationsNew(w http.ResponseWriter, r *http.Request
 	reservations, err := m.DB.GetNewReservations()
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0013: cannot get new reservations from database")
-		http.Redirect(w, r, "/admin/dashboard", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -523,7 +523,7 @@ func (m *Repository) AdminReservationsAll(w http.ResponseWriter, r *http.Request
 	reservations, err := m.DB.GetAllReservations()
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0014: cannot get all reservations from database")
-		http.Redirect(w, r, "/admin/dashboard", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -698,17 +698,14 @@ func (m *Repository) AdminPostReservationsCalendar(w http.ResponseWriter, r *htt
 
 // AdminReservationProcess marks the associated reservation as processed
 func (m *Repository) AdminReservationProcess(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
-		m.App.ErrorLog.Println(" missing URL parameter (id)")
-		return
-	}
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+
 	src := chi.URLParam(r, "src")
 
-	err = m.DB.UpdateReservationProcessed(id, 1)
+	err := m.DB.UpdateReservationProcessed(id, 1)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0019: cannot update requested reservation")
-		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusTemporaryRedirect)
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
 		return
 	}
 
@@ -726,17 +723,14 @@ func (m *Repository) AdminReservationProcess(w http.ResponseWriter, r *http.Requ
 
 // AdminReservationDelete deletes the associated reservation from the database
 func (m *Repository) AdminReservationDelete(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
-		m.App.ErrorLog.Println(" missing URL parameter (id)")
-		return
-	}
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+
 	src := chi.URLParam(r, "src")
 
-	err = m.DB.DeleteReservation(id)
+	err := m.DB.DeleteReservation(id)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0020: cannot delete requested reservation")
-		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusTemporaryRedirect)
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
 		return
 	}
 
@@ -759,7 +753,7 @@ func (m *Repository) AdminReservation(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(elements[4])
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0015: missing URL parameter (id)")
-		http.Redirect(w, r, "/admin/dashboard", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 		return
 	}
 	stringMap := make(map[string]string)
@@ -771,7 +765,7 @@ func (m *Repository) AdminReservation(w http.ResponseWriter, r *http.Request) {
 	reservation, err := m.DB.GetReservationByID(id)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0016: cannot get requested reservation from database")
-		http.Redirect(w, r, "/admin/dashboard", http.StatusTemporaryRedirect)
+		http.Redirect(w, r, "/admin/dashboard", http.StatusSeeOther)
 		return
 	}
 
@@ -807,7 +801,7 @@ func (m *Repository) AdminPostReservation(w http.ResponseWriter, r *http.Request
 	reservation, err := m.DB.GetReservationByID(id)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0017: cannot get requested reservation from database")
-		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusTemporaryRedirect)
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
 		return
 	}
 	// overwrite any/all of 4 possible updatable fields
@@ -854,7 +848,7 @@ func (m *Repository) AdminPostReservation(w http.ResponseWriter, r *http.Request
 	err = m.DB.UpdateReservation(reservation)
 	if err != nil {
 		m.App.Session.Put(r.Context(), "error", "#0018: cannot update reservation")
-		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusTemporaryRedirect)
+		http.Redirect(w, r, fmt.Sprintf("/admin/reservations-%s", src), http.StatusSeeOther)
 		return
 	}
 
