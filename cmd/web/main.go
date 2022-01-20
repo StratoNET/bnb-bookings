@@ -66,6 +66,7 @@ func run_main() (*database.DB, error) {
 	gob.Register(models.RestrictionCategory{})
 	gob.Register(map[string]int{})
 
+	// load environment
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
