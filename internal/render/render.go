@@ -46,6 +46,15 @@ func IterateDays(count int) []int {
 	return days
 }
 
+// GetIP gets request's IP address by reading from 'X-FORWARDED-FOR' header (for proxies) but can fall back to remote address
+func GetIP(r *http.Request) string {
+	forwarded := r.Header.Get("X-FORWARDED-FOR")
+	if forwarded != "" {
+		return forwarded
+	}
+	return r.RemoteAddr
+}
+
 // NewRenderer sets config for template package
 func NewRenderer(a *config.AppConfig) {
 	app = a
@@ -54,7 +63,7 @@ func NewRenderer(a *config.AppConfig) {
 func AddDefaultData(td *models.TemplateData, r *http.Request) *models.TemplateData {
 	// add any default data, required on every page template, at this point
 	td.CSRFToken = nosurf.Token(r)
-	td.RemoteIP = r.RemoteAddr
+	td.RemoteIP = GetIP(r)
 	td.Flash = app.Session.PopString(r.Context(), "flash")
 	td.Warning = app.Session.PopString(r.Context(), "warning")
 	td.Error = app.Session.PopString(r.Context(), "error")
