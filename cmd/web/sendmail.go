@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -21,9 +23,14 @@ func mailListener() {
 }
 
 func sendMsg(m models.MailData) {
+	encryptionType, _ := strconv.Atoi(os.Getenv("SMTP_ENCRYPTION"))
+
 	server := mail.NewSMTPClient()
-	server.Host = "localhost"
-	server.Port = 1025
+	server.Username = os.Getenv("SMTP_USER")
+	server.Password = os.Getenv("SMTP_PASS")
+	server.Host = os.Getenv("SMTP_HOST")
+	server.Port, _ = strconv.Atoi(os.Getenv("SMTP_PORT"))
+	server.Encryption = mail.Encryption(encryptionType)
 	server.KeepAlive = false
 	server.ConnectTimeout = 10 * time.Second
 	server.SendTimeout = 10 * time.Second
