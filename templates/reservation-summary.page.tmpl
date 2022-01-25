@@ -12,40 +12,49 @@
 
         <hr>
 
-        <table class="table table-success table-striped">
-          <thead>
-            <tr>
-              <th>Reservation</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Name:</td>
-              <td>{{$rsvn.FirstName}}&nbsp;{{$rsvn.LastName}}</td>
-            </tr>
-            <tr>
-              <td>Room:</td>
-              <td>{{$rsvn.Room.RoomName}}</td>
-            </tr>
-            <tr>
-              <td>Arrival:</td>
-              <td>{{index .StringMap "start_date"}}</td>
-            </tr>
-            <tr>
-              <td>Departure:</td>
-              <td>{{index .StringMap "end_date"}}</td>
-            </tr>
-            <tr>
-              <td>Email:</td>
-              <td>{{$rsvn.Email}}</td>
-            </tr>
-            <tr>
-              <td>Phone:</td>
-              <td>{{$rsvn.Phone}}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div class="table-responsive">
+          <table class="table table-success table-striped">
+            <thead>
+              <tr>
+                <th>Reservation</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Name:</td>
+                <td>{{$rsvn.FirstName}}&nbsp;{{$rsvn.LastName}}</td>
+              </tr>
+              <tr>
+                <td>Room:</td>
+                <td>{{$rsvn.Room.RoomName}}</td>
+              </tr>
+              <tr>
+                <td>Arrival:</td>
+                <td>{{index .StringMap "start_date"}}</td>
+              </tr>
+              <tr>
+                <td>Departure:</td>
+                <td>{{index .StringMap "end_date"}}</td>
+              </tr>
+              <tr>
+                <td>Email:</td>
+                <td>{{$rsvn.Email}} <span style="color:#dc143c;">&#10034;</span></td>
+              </tr>
+              <tr>
+                <td>Phone:</td>
+                <td>{{$rsvn.Phone}}</td>
+              </tr>
+              <tr>
+                <td>&nbsp;</td>
+                <td>
+                  <span style="color:#dc143c;">&#10034;</span>
+                  <span style="font-size:0.75rem;"> a confirmation email has been sent to this address. It should arrive quickly, if not... please check your 'spam' folder.</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
