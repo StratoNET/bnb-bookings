@@ -79,7 +79,7 @@ func (m *mariaDBRepository) SearchAvailabilityByDatesAndRoomID(start, end time.T
 	// original query (fails to account for SINGLE DAY reservations / owner blocks)
 	// query := `SELECT COUNT(id) FROM room_restrictions WHERE room_id = ? AND ? < end_date AND ? > start_date;`
 
-	query := `SELECT COUNT(id) FROM room_restrictions WHERE room_id = ? AND start_date BETWEEN ? AND ? OR ? BETWEEN start_date AND end_date;`
+	query := `SELECT COUNT(id) FROM room_restrictions WHERE room_id = ? AND (start_date BETWEEN ? AND ? OR ? BETWEEN start_date AND end_date);`
 
 	row := m.DB.QueryRowContext(ctx, query, roomID, start, end, start)
 	err := row.Scan(&numRows)
@@ -107,7 +107,7 @@ func (m *mariaDBRepository) SearchAvailabilityForAllRooms(start, end time.Time) 
 	// (SELECT rr.room_id FROM room_restrictions rr WHERE ? < rr.end_date AND ? > rr.start_date);`
 
 	query := `SELECT r.id, r.room_name FROM rooms r WHERE r.id NOT IN 
-  (SELECT rr.room_id FROM room_restrictions rr WHERE rr.start_date BETWEEN ? AND ? OR ? BETWEEN rr.start_date AND rr.end_date);`
+  (SELECT rr.room_id FROM room_restrictions rr WHERE (rr.start_date BETWEEN ? AND ? OR ? BETWEEN rr.start_date AND rr.end_date));`
 
 	rows, err := m.DB.QueryContext(ctx, query, start, end, start)
 	if err != nil {
@@ -475,7 +475,7 @@ func (m *mariaDBRepository) GetRoomRestrictionsByDate(roomID int, startDate, end
 
 	// query uses coalesce to substitute 0 for any null value of reservation_id which GO would not allow
 	query := `SELECT id, room_id, COALESCE(reservation_id, 0), restriction_id, start_date, end_date, created_at, updated_at FROM room_restrictions 
-	WHERE room_id = ? AND start_date BETWEEN ? AND ? OR ? BETWEEN start_date AND end_date;`
+	WHERE room_id = ? AND (start_date BETWEEN ? AND ? OR ? BETWEEN start_date AND end_date);`
 
 	rows, err := m.DB.QueryContext(ctx, query, roomID, startDate, endDate, startDate)
 	if err != nil {
