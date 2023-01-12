@@ -1,64 +1,64 @@
 {{template "admin" .}}
 
 {{define "css"}}
-  <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet">
+<link href="/static/admin/dashboard/css/simple-datatables-v4.0.7.css" rel="stylesheet">
 {{end}}
 
 {{define "page-title"}}
-  All Reservations
+All Reservations
 {{end}}
 
 {{define "content"}}
 
-  {{$rsvn := index .Data "reservations"}}
+{{$rsvn := index .Data "reservations"}}
 
-  <table id="all-reservations" class="table table-primary table-striped table-hover">
-    <thead>
-      <tr>
-        <th>Last Name</th>
-        <th>First Name</th>
-        <th>Email</th>
-        <th>Phone</th>
-        <th>Room</th>
-        <th data-type="date" data-format="DD/MM/YYYY">Arrival Date</th>
-        <th data-type="date" data-format="DD/MM/YYYY">Departure Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      {{range $rsvn}}
-        <tr>
-          <td>
-            <a href="/admin/reservations/all/{{.ID}}/page">{{.LastName}}</a>
-          </td>
-          <td>{{.FirstName}}</td>
-          <td>{{.Email}}</td>
-          <td>{{.Phone}}</td>
-          <td>{{.Room.RoomName}}</td>
-          <td>{{dateUK .StartDate}}</td>
-          <td>{{dateUK .EndDate}}</td>
-        </tr>
-      {{end}}
-    </tbody>
-  </table>
+<table id="all-reservations" class="table table-primary table-striped table-hover">
+  <thead>
+    <tr>
+      <th>Last Name</th>
+      <th>First Name</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th>Room</th>
+      <th data-type="date" data-format="DD/MM/YYYY">Arrival Date</th>
+      <th data-type="date" data-format="DD/MM/YYYY">Departure Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {{range $rsvn}}
+    <tr>
+      <td>
+        <a href="/admin/reservations/all/{{.ID}}/page">{{.LastName}}</a>
+      </td>
+      <td>{{.FirstName}}</td>
+      <td>{{.Email}}</td>
+      <td>{{.Phone}}</td>
+      <td>{{.Room.RoomName}}</td>
+      <td>{{dateUK .StartDate}}</td>
+      <td>{{dateUK .EndDate}}</td>
+    </tr>
+    {{end}}
+  </tbody>
+</table>
 
 {{end}}
 
 {{define "js"}}
-  <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function() {
-      let dataTable = new simpleDatatables.DataTable("#all-reservations", {
-        perPageSelect: [5, 10, 15, 20, 25, 30, 40, 50],
-        perPage: 20,
-        // allow sorting of specified format dates by javascript on both arrival(5) or departure(6)
-        columns: [
-          {
-            select: [5,6],
-            type: "date",
-            format: "DD/MM/YYYY",
-          }
-        ]
-      })
+<script src="/static/admin/dashboard/js/simple-datatables-v4.0.7.min.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    let dataTable = new simpleDatatables.DataTable("#all-reservations", {
+      perPageSelect: [5, 10, 15, 20, 25, 30, 40, 50],
+      perPage: 20,
+      // allow sorting of specified format dates by javascript on both arrival(5) or departure(6)
+      columns: [
+        {
+          select: [5, 6],
+          type: "date",
+          format: "DD/MM/YYYY",
+        }
+      ]
     })
-  </script>
+  })
+</script>
 {{end}}
